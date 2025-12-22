@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skin version="0.2">
+	<title xml:lang="ko">스케치북 기반 기본 스킨</title>
+	<description xml:lang="ko">스케치북 게시판 기반 스티커 모듈 기본 스킨.</description>
+	<version>0.0.0</version>
+	<date>2016-12-31</date>
+	<author email_address="mmia268@gmail.com" link="http://gamezot.net">
+		<name xml:lang="ko">후하니</name>
+	</author>
+	<license>GPLv2</license>
+	<extra_vars>
+		<title xml:lang="ko">설정</title>
+			<var name="shop_name" type="text">
+				<title xml:lang="ko">상단 타이틀</title>
+				<description xml:lang="ko">최상단 타이틀(기본 Stick Shop)</description>
+			</var>
+			<var name="notice" type="textarea">
+				<title xml:lang="ko">공지내용</title>
+				<description xml:lang="ko">공지내용안에 입력할 내용을 작성(Html지원됨)</description>
+			</var>
+			<var name="sb_width" type="text">
+				<title xml:lang="ko">스티커샘플 가로폭</title>
+				<description xml:lang="ko">스티커 샘플박스 가로폭(기본 160)</description>
+			</var>
+			<var name="sb_height" type="text">
+				<title xml:lang="ko">스티커샘플 세로폭</title>
+				<description xml:lang="ko">스티커 샘플박스 세로폭(기본 160)</description>
+			</var>
+			<var name="cut" type="text">
+				<title xml:lang="ko">제목 글수</title>
+				<description xml:lang="ko">스티커꾸러미 제목 글수(기본 25)</description>
+			</var>
+			<var name="seller" type="select">
+				<title xml:lang="ko">제작자 표기</title>
+				<options value="Y">
+					<title xml:lang="ko">표기(기본)</title>
+				</options>
+				<options value="N">
+					<title xml:lang="ko">표기 안함</title>
+				</options>
+			</var>
+	</extra_vars>
+</skin>

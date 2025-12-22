@@ -1,0 +1,199 @@
+<div class="hi container bd hover_effect small_lst_btn1" data-default_style="list" data-bdfilestype="" data-bdimgopt="Y">
+
+
+<div class="rd rd_nav_style2 clear" style="padding:;" data-docsrl="848643">
+	
+<div class="rd_hd clear" style="mar gin:0 -15px 20px">
+<div class="board clear " style=";">
+
+
+	<div class="top_area ngeb" style=";">
+
+		<div class="fr">
+			<span class="date m_no">{zdate($sticker->regdate,"Y.m.d H:i")}</span>
+		</div>
+
+		<h1 class="np_18px">
+			<a href="{getUrl('','mid','sticker','sticker_srl',$sticker->sticker_srl)}">{$sticker->title}</a>
+		</h1>
+
+	</div>
+
+
+	<div class="btm_area clear">
+			<div class="side">
+				<a href="#popup_menu_area" class="nick member_{$sticker->member_srl}" onclick="return false">{$sticker->nick_name}</a>
+			</div>
+
+		<div class="side fr">
+
+			<small class="m_no"  cond="($logged_info && $logged_info->is_admin == 'Y') || $grant->manager">
+		(<a style="text-decoration: none;font-weight: 200;" onclick="window.open('http://whois.kisa.or.kr/kor/whois.jsc?query={$sticker->ipaddress}','WHOIS QUERY','width=550, height=800, menubar=no, status=no, toolbar=no');">{$sticker->ipaddress}</a>)
+			</small>
+
+			<span>
+				조회 수 <b>{$sticker->readed_count}</b>
+			</span>
+
+			<span>
+				판매 수 <b>{$sticker->bought_count}</b>
+			</span>
+		</div>
+				
+	</div>
+</div>		
+				
+				
+				
+				
+				
+	<div class="rd_nav img_tx fr m_btn_wrp" cond="($logged_info && ($logged_info->member_srl == $sticker->member_srl || $logged_info->is_admin == 'Y')) || $grant->manager">
+		<a class="edit" href="{getUrl('','mid','sticker','sticker_srl',$sticker->sticker_srl,'act','dispStickerWrite')}"><i class="fa fa-pencil-square-o"></i>수정</a>
+
+		<a class="edit" href="{getUrl('','mid','sticker','sticker_srl',$sticker->sticker_srl,'act','dispStickerDelete')}"><i class="fa fa-remove"></i>삭제 </a>
+	</div>
+
+</div>
+	
+		
+<div class="rd_body clear">
+
+<table class="et_vars" style="display: table; width: 40%; margin: 0 auto 10px;" cond="$sticker->start_date || $sticker->end_date || $sticker->exptime || $sticker->buy_limit">
+	<caption class="blind">Extra Form</caption>
+	<tbody>
+		<tr cond="$sticker->start_date">
+			<th scope="row">판매 시작일</th>
+			<td>
+				<span>{zdate($sticker->start_date,"Y.m.d H:i:s")}</span>
+			</td>
+		</tr>
+		<tr cond="$sticker->end_date">
+			<th scope="row">판매 종료일</th>
+			<td>
+				<span>{zdate($sticker->end_date,"Y.m.d H:i:s")}</span>
+			</td>
+		</tr>
+		<tr cond="$sticker->exptime">
+			<th scope="row">사용 기한</th>
+			<td>
+{@
+	$exptime_year = $sticker->exptime && $sticker->exptime >=8760 ? (int)($sticker->exptime / 8760) : 0;
+	$exptime_day = $sticker->exptime && $sticker->exptime >=24 ? (int)(($sticker->exptime - $exptime_year*8760)/24) : 0;
+	$exptime_hour = $sticker->exptime ? (int)($sticker->exptime - $exptime_year*8760 - $exptime_day*24) : 0;
+}
+				<span>구매시점으로부터{$exptime_year ? (" ".$exptime_year."년"):""}{$exptime_day ? (" ".$exptime_day."일"):""}{$exptime_hour ? (" ".$exptime_hour."시간"):""}까지</span>
+			</td>
+		</tr>
+		<tr cond="$sticker->buy_limit">
+			<th scope="row">남은 수량</th>
+			<td>
+				<span>{$sticker->buy_limit-$sticker->bought_count >= 0 ? $sticker->buy_limit-$sticker->bought_count : 0}</span>
+			</td>
+		</tr>
+	</tbody>
+</table>	
+
+	<!--<div class="main_sticker">
+		<img src="{$sticker_file[0]->url}" width="200" height="200">
+	</div>-->
+
+<div class="sticker_content">
+	<article>
+	<!--BeforeDocument({$sticker->sticker_srl},{$sticker->member_srl})-->
+		<div class="sticker_{$sticker->sticker_srl} xe_content">
+
+		{$sticker->content}
+
+		</div>
+	<!--AfterDocument({$sticker->sticker_srl},{$sticker->member_srl})-->
+	</article>
+</div>
+
+	<div class="sticker_tag" cond="$sticker->tag">
+{@
+	$tag = explode(",", $sticker->tag);
+}
+		<ul>
+			<li loop="$tag => $no, $tag">
+{@
+	$trim_tag = trim($tag);
+}
+				<a href="{getUrl('', 'mid', 'sticker', 'search_target', 'tag', 'search_keyword', $tag)}">{$trim_tag}</a>
+			</li>
+		</ul>
+
+
+	</div>
+
+	<div class="sicker_file_list">
+		<ul>
+			<li loop="$sticker_file => $no, $sticker_file">
+{@
+	$sticker_file->file_name = substr($sticker_file->file_name, 0, strrpos($sticker_file->file_name, "."));
+}
+				<div class="stk_img_v stk_file_{$sticker_file->no}" title="{htmlspecialchars($sticker_file->file_name, ENT_COMPAT | ENT_HTML401, 'UTF-8', false)}" style="background-image: url({$sticker_file->url});"></div>
+			</li>
+
+		</ul>
+
+	</div>
+
+	<div class="sticker_buy <!--@if(!$logged_info)-->not_logged_in<!--@endif-->">
+		<block cond="!$is_bougth">
+			<!--@if($sticker->status == 'PUBLIC')-->
+
+				<!--@if($sticker->buy_limit > 0 && $sticker->bought_count >= $sticker->buy_limit)-->
+
+					<!--@if(!((!$sticker->start_date || $sticker->start_date <= $date) && (!$sticker->end_date || $sticker->end_date > $date)))-->
+						<span class="not_sale_date_btn">
+							구매기간이 아닙니다.
+						</span>
+					<!--@else-->
+						<span class="sold_out_btn">
+							재고가 없습니다.
+						</span>
+					<!--@end-->
+
+				<!--@else-->
+
+					<!--@if((!$sticker->start_date || $sticker->start_date <= $date) && (!$sticker->end_date || $sticker->end_date > $date))-->
+						<span class="buy_btn price_{$sticker->price}">
+							구매하기 ({$sticker->price} point)
+						</span>
+					<!--@else-->
+						<span class="not_sale_date_btn">
+							구매기간이 아닙니다.
+						</span>
+					<!--@end-->
+
+				<!--@end-->
+
+			<!--@else-->
+				<span class="check_btn" cond="$sticker->status == 'CHECK'">
+					검토중인 스티커입니다.
+				</span>
+				<span class="stop_btn" cond="$sticker->status == 'PAUSE' || $sticker->status == 'STOP'">
+					판매정지된 스티커입니다.
+				</span>
+			<!--@end-->
+		</block>
+		<span class="throw_btn" cond="$is_bougth">
+			<i class="fa fa-trash"></i> 버리기
+		</span>
+	</div>
+
+</div>
+
+	
+	<div class="rd_ft">
+		<div class="rd_ft_nav clear">
+						
+
+		
+					
+		</div>
+	</div>
+	
+		
+</div>
+</div>

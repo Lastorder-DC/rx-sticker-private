@@ -1,0 +1,28 @@
+<include target="./_setting.html" />
+<div class="stk_bd">
+
+<!--@if(isset($view_grant))-->
+	<!--@if($view_grant === true)-->
+		<!--@if($sticker && ($sticker->status != 'STOP' || $grant->manager))-->
+			<include cond="$sticker && $sticker_file" target="./_read.html" />
+		<!--@else-->
+			<div class="message error">
+				<p>삭제되었거나 정지된 스티커입니다.</p>
+			</div>
+		<!--@end-->
+	<!--@else-->
+			<div class="message error">
+				<p>읽기 권한이 없습니다.</p>
+			</div>
+	<!--@endif-->
+<!--@endif-->
+
+<!--@if($grant->list)-->
+<include target="./_list.html" />
+<!--@else-->
+<div class="message error">
+	<p>접근 권한이 없습니다.</p>
+</div>
+<!--@end-->
+
+</div>

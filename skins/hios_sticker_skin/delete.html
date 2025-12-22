@@ -1,0 +1,25 @@
+<include target="_setting.html" />
+
+<div id="bd" class="bd">
+	<div class="bd_hd clear">
+		
+	</div>
+	<div class="context_data">
+	<h3 class="title">{$sticker->title}</h3>
+	<p class="author">
+		<strong>{$sticker->nick_name}</strong>
+	</p>
+</div>
+<form action="./" method="post" onsubmit="return procFilter(this, delete_sticker)" class="context_message">
+	<input type="hidden" name="act" value="procStickerDelete">
+	<input type="hidden" name="module" value="sticker">
+	<input type="hidden" name="mid" value="sticker">
+	<input type="hidden" name="sticker_srl" value="{$sticker->sticker_srl}">
+
+	<h1>이 스티커를 삭제하시겠습니까?</h1>
+	<div class="btnArea">
+		<input class="bd_btn blue" type="submit" value="삭제">
+		<button class="bd_btn" type="button" onclick="history.back()">취소</button>
+	</div>
+</form>
+</div>

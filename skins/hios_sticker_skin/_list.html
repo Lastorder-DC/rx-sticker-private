@@ -1,0 +1,136 @@
+
+<div id="bd_sticker_list" class="bd   hover_effect" data-default_style="gallery" data-bdbubble="N" data-bdfilestype="" data-bdnavside="N">
+<div class="bd_lst_wrp">
+
+
+<!--// 카테고리 -->
+<div class="cnb_n_list">
+
+
+</div>
+
+
+
+
+
+<table class="bd_lst bd_tb_lst bd_tb">
+<tbody>
+	<tr class="notice" cond="notice_count != '0'" loop="$notice => $no, $notice">
+	<td class="no">
+	<strong>공지</strong> </td> 
+	<td class="title"><a href="{getUrl('','mid','sticker','sticker_srl',$notice->sticker_srl)}"><strong>{$notice->sticker_title}</strong></a></td>
+	<td class="author"><span><a href="#popup_menu_area" class="member_{$notice->member_srl}" onclick="return false">웹마스터</a></span></td>
+	<td class="time">{zdate($notice->regdate, 'Y-m-d')}</td>
+	<td class="m_no">{$notice->readed_count}</td>
+	 
+	</tr>
+</tbody>
+</table>
+
+
+<ol class="bd_lst bd_tmb_lst gall_style img_load tmb_bg clear">
+
+
+
+<li cond="notice_count != '0'" loop="$list  => $no, $list" class="lst_stk">
+	<a class="hx fixed" href="{getUrl('mid','sticker','sticker_srl',$list->sticker_srl)}">
+		<div class="tmb_wrp ribbon_v2 fin_load" style="max-width:160px">
+		<span class="no_img loading"></span>
+			<div class="tmb" style="background-image: url({$list->main_image});"></div>
+				<p class="ng" style="font-weight:600;font-size:13px;text-align:center;margin:8px 4px 0px;">{cut_str($list->title, 25)}</p>
+				<div class="trans_window fixed">
+	by {$list->nick_name}</div>
+
+		</div>
+	</a>
+</li>
+
+
+
+
+</ol>
+<div class="btm_mn clear">
+
+	<div class="fl">
+		<a class="btn_img fl" href="{getUrl('', 'mid', 'sticker')}" cond="$search_target"><i class="fa fa-bars"></i> 목록</a>
+		<a class="btn_img fl" href="{getUrl('', 'mid', 'sticker', 'search_target', 'status', 'search_keyword', 'CHECK')}" cond="!$search_target"><i class="fa fa-minus"></i> 검토 목록</a>
+
+
+<form action="{getUrl()}" method="get" onsubmit="return procFilter(this, search)" no-error-return-url="true" class="bd_srch_btm on">
+	<input type="hidden" name="act" value="">
+	<input type="hidden" name="vid" value="">
+	<input type="hidden" name="mid" value="{$mid}">
+	<input type="hidden" name="category" value="">
+	<span class="btn_img itx_wrp" method="get" style="width: 140px;">
+		<label for="bd_srch_btm_itx_111" style="visibility: visible;">검색</label>
+		<input type="text" name="search_keyword" id="bd_srch_btm_itx_111" class="bd_srch_btm_itx srch_itx acInput" value="{htmlspecialchars($search_keyword)}" autocomplete="off">
+	</span>
+	<span class="btn_img select">
+		<select name="search_target">
+			<option value="title" selected="selected"|cond="$search_target == 'title'">제목</option>
+			<option value="content" selected="selected"|cond="$search_target == 'content'">내용</option>
+			<option value="nick_name" selected="selected"|cond="$search_target == 'nick_name'">닉네임</option>
+			<option value="tag" selected="selected"|cond="$search_target == 'tag'">태그</option>	
+		</select>
+	</span>
+	<a class="btn_img fl" onclick="jQuery(this).parents('form.bd_srch_btm').submit();return false"><i class="fa fa-search"></i> 검색</a>
+</form>
+
+
+	</div>
+
+	<div class="fr">
+		<a class="btn_img" href="{getUrl('', 'mid', 'sticker', 'sticker_srl', '', 'act', 'dispStickerWrite')}"><i class="fa fa-pencil-square-o"></i> 쓰기</a> 
+
+		<a class="btn_img" href="{getUrl('', 'mid', 'sticker', 'sticker_srl', '', 'act', 'dispStickerMylist')}"><i class="fa fa-cog"></i> 설정</a>
+	</div>
+
+</div>
+
+<form action="./" method="get" class="bd_pg clear"><input type="hidden" name="error_return_url" value="{getUrl('mid','sticker')}"><input type="hidden" name="act" value="">
+	<fieldset>
+	<legend class="blind">Board Pagination</legend>
+	<input type="hidden" name="vid" value="{$vid}" />
+	<input type="hidden" name="mid" value="{$mid}" />
+	<input type="hidden" name="category" value="{$category}" />
+	<input type="hidden" name="search_keyword" value="{htmlspecialchars($search_keyword)}" />
+	<input type="hidden" name="search_target" value="{$search_target}" />
+	{@
+ if(!$page) $page = 1;
+ $prev_page = max($page-1, 1)}
+	{@ $next_page = min($page+1, $page_navigation->last_page)}
+	<a cond="$page!=$prev_page" href="{getUrl('page',$prev_page,'sticker_srl','','division',$division,'last_division',$last_division)}" class="direction"><i class="fa fa-angle-left"></i> Prev</a>
+	<strong cond="$page==$prev_page" class="direction">
+		<i class="fa fa-angle-left"></i> Prev
+	</strong>
+
+	<a class="frst_last bubble<!--@if($page==1)--> this<!--@end-->" href="{getUrl('page','','sticker_srl','','division',$division,'last_division',$last_division)}" title="{$lang->first_page}">1</a>
+
+	<span cond="$page>($mi->page_count)/2+2" class="bubble">
+		<a href="#" class="tg_btn2" data-href=".bd_go_page" title="{$lang->go_page}">...</a>
+	</span>
+
+	<block loop="$page_no=$page_navigation->getNextPage()" cond="$page_no!=1 && $page_no!=$page_navigation->last_page">
+		<strong class="this" cond="$page==$page_no">{$page_no}</strong> 
+		<a cond="$page!=$page_no" href="{getUrl('page',$page_no,'sticker_srl','','division',$division,'last_division',$last_division)}">{$page_no}</a>
+	</block>
+
+	<a cond="$page_navigation->last_page!=1" class="frst_last bubble<!--@if($page==$page_navigation->last_page)--> this<!--@end-->" href="{getUrl('page',$page_navigation->last_page,'sticker_srl','','division',$division,'last_division',$last_division)}" title="{$lang->last_page}">{$page_navigation->last_page}</a>
+	<a cond="$page!=$next_page" href="{getUrl('page',$next_page,'sticker_srl','','division',$division,'last_division',$last_division)}" class="direction">
+		Next <i class="fa fa-angle-right"></i>
+	</a>
+
+	<strong cond="$page==$next_page" class="direction">Next <i class="fa fa-angle-right"></i></strong>
+
+	<div class="bd_go_page tg_cnt2 wrp">
+		<button type="button" class="tg_blur2"></button>
+		<input type="text" name="page" class="itx" />/ {$page_navigation->last_page} <button type="submit" class="bd_btn">GO</button>
+		<span class="edge">
+		</span>
+		<!--// ie8; --><i class="ie8_only bl"></i><i class="ie8_only br"></i>
+		<button type="button" class="tg_blur2">
+		</button>
+	</div>
+	</fieldset>
+</form>
+</div> </div>

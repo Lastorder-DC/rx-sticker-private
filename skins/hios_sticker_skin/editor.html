@@ -1,0 +1,108 @@
+<include target="_setting.html" />
+<load target="./js/editor.js" />
+
+<!--TODO-->
+<div cond="$XE_VALIDATOR_MESSAGE && $XE_VALIDATOR_ID == ''" class="message {$XE_VALIDATOR_MESSAGE_TYPE}">
+	<p>{$XE_VALIDATOR_MESSAGE}</p>
+</div>
+
+<form action="./" method="post" enctype="multipart/form-data" editor_sequence="2" class="bd_wrt bd_wrt_main clear">
+	<input type="hidden" name="mid" value="{$mid}" />
+	<input type="hidden" name="act" value="procStickerInsert" />
+	<input type="hidden" name="content" value="{$sticker->content}" />
+	<input type="hidden" name="sticker_srl" value="{$sticker->sticker_srl}" />
+
+	<!--// 상단 : 카테고리, 제목 -->
+	<table class="bd_wrt_hd bd_tb">
+		<tr>
+			<td>
+				<select cond="$mi->use_category=='Y' && $category_list" name="category_srl" class="category">
+					<option value="">{$lang->category}</option>
+					<option loop="$category_list => $val" disabled="disabled"|cond="!$val->grant" value="{$val->category_srl}" selected="selected"|cond="$val->grant&&$val->selected||$val->category_srl==$oDocument->get('category_srl')">
+						{str_repeat("&nbsp;&nbsp;",$val->depth)} {$val->title} ({$val->document_count})
+					</option>
+				</select>
+			</td>
+			<td width="100%">
+				<span class="itx_wrp">
+					<input type="text" name="title" class="itx" id="postTitle" placeholder="{$lang->title}" title="{$lang->title}" value="{$sticker->title}" />
+				</span>
+			</td>
+		</tr>
+	</table>
+
+<table class="et_vars exForm bd_tb">
+	<caption><strong><em>*</em></strong> <small>: 필수항목</small></caption>
+	<tbody><tr>
+		<th scope="row"><em>*</em> 판매 포인트</th>
+		<td>
+			<input type="number" name="price" class="text itx" value="{$sticker->price}" placeholder="최소{$config->minPoint}P - 최대{$config->maxPoint}P">
+		</td>
+	</tr>
+</tbody></table>
+
+<table class="et_vars exForm bd_tb">
+	<tbody>
+	<tr>
+		<th scope="row"><em>*</em> 스티커 메인 이미지</th>
+		<td>
+			<span class="attached_file" cond="$sticker && $sticker_file[0]->no == 0">{$sticker_file[0]->file_name}</span>
+			<input type="file" name="sticker_main_file" accept="image/*">
+			<!--//<input type="hidden" name="sticker_main_file_srl" value="">-->
+		</td>
+	</tr>
+	<tr loop="$i=0;$i<$config->maxUploads;$i++">
+		<th scope="row"><em cond="$i<$config->minUploads">*</em> 스티커 {$i+1}번이미지</th>
+		<td>
+		<!--@if($sticker && !empty($sticker_file))-->
+
+			{$image_file = null}
+			<block loop="$sticker_file => $no, $image">
+				<!--@if($image->no == $i+1)-->
+					{@$image_file = $image;}
+				<!--@end-->
+			</block>
+
+			<!--@if($sticker && $image_file)-->
+			<span class="attached_file">{$image_file->file_name}</span>
+			<input type="file" name="sticker_file_{$i+1}" accept="image/*">
+			<button cond="$i+1>$config->minUploads" onclick="confirm({$i+1}+'번째 스티커를 삭제합니다.') && deleteFile({$sticker->sticker_srl}, {$i+1}); return false;" class="sticker_delete">삭제</button>
+			<!--@else-->
+			<input type="file" name="sticker_file_{$i+1}" accept="image/*">
+			<!--@end-->
+		<!--@else-->
+			<input type="file" name="sticker_file[]" accept="image/*">
+		<!--@end-->
+			<!--//<input type="hidden" name="sticker_file_srl[]" value="">-->
+		</td>
+	</tr>
+	</tbody>
+</table>
+
+
+	<div class="get_editor">
+		{$editor}
+	</div>
+
+	<!--// 태그 -->
+	<div class="tag itx_wrp">
+		<span class="itx_wrp">
+            <input type="text" placeholder="태그 : 여러 개의 태그는 쉼표(,)로 구분하세요" name="tags" id="tags" value="{$sticker->tag}" class="itx" />
+		</span>
+	</div>
+	
+	<!--// Buttons -->
+	<div class="regist">
+		<input type="submit" value="등록" class="bd_btn blue" />
+		<button type="button" onclick="history.back()" class="bd_btn cancle">{$lang->cmd_back}</button>
+	</div>
+</form>
+
+
+<script>
+var stickerConfig = {};
+stickerConfig.allowMIMEType = ['image/jpeg', 'image/png', 'image/gif'];
+stickerConfig.maxFileSize = {$config->file_size}; // KB * 1024
+stickerConfig.minPrice = {$config->minPoint};
+stickerConfig.maxPrice = {$config->maxPoint};
+</script>

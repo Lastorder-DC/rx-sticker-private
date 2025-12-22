@@ -1,0 +1,96 @@
+<load target="./css/mypage.css" />
+<load target="../../../member/skins/hios_member_skin/style/hios.css" />
+<load target="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" />
+<load target="./js/board.js" />
+
+<include target="../../../member/skins/hios_member_skin/header_profile.html" />
+<include target="../../../member/skins/hios_member_skin/common_header.html" />
+
+<div id="sticker_mypage" class="stk_bd">
+
+  <div id="sticker_table">
+  <table class="hi table table-divider margin-bottom-small">
+
+    <caption>
+    </caption>
+
+    <thead>
+
+      <tr>
+        <th>
+          <span>번호</span>
+        </th>
+
+        <th>
+          <span>제목</span>
+        </th>
+
+        <th>
+          <span>구매 가격</span>
+        </th>
+
+        <th>
+          <span>구매일</span>
+        </th>
+
+        <th>
+          <span>만료일</span>
+        </th>
+
+        <th>
+          <span>설정</span>
+        </th>
+      </tr>
+
+    </thead>
+
+    <tbody>
+      <tr loop="$sticker => $no, $sticker">
+
+        <td>
+          <span>{$no}</span>
+        </td>
+
+        <td>
+          <a href="{getUrl('', 'mid', 'sticker', 'sticker_srl', $sticker->sticker_srl)}"><img src="{$sticker->main_image}" class="sticker_sample" style=""><span class="sticker_title">{$sticker->title}</span></a>
+        </td>
+
+        <td>
+          <span>{$sticker->use_point}</span>
+        </td>
+
+        <td>
+          <span>{zdate($sticker->regdate,"Y.m.d H:i")}</span>
+        </td>
+
+        <td>
+          <span>{$sticker->expdate ? zdate($sticker->expdate,"Y.m.d H:i") : "무기한"}</span>
+        </td>
+
+        <td>
+          <a cond="$page_navigation->total_count != $no" href="javascript:;" title="위로" class="stk_lnk sticker_up" data-src="{$sticker->sticker_srl}"><i class="fa fa-arrow-up" aria-hidden="true"></i></a>
+          <a cond="$no > 1" href="javascript:;" class="stk_lnk sticker_down" title="아래로" data-src="{$sticker->sticker_srl}"><i class="fa fa-arrow-down" aria-hidden="true"></i></a>
+          <a href="javascript:;" class="stk_lnk sticker_delete" title="삭제" data-src="{$sticker->sticker_srl}"><i class="fa fa-trash" aria-hidden="true"></i></a>
+        </td>
+
+      </tr>
+      <!--<tr cond="!$sticker">
+        <td>
+          보유중인 스티커가 없습니다.
+        </td>
+      </tr>-->
+    </tbody>
+  </table>
+  </div>
+
+  <div class="hi flex flex-middle">
+    <ul class="hi pagination">
+      <li><a href="{getUrl('page','','module_srl','')}">&laquo; 첫 페이지</a></li>
+      <!--@while($page_no = $page_navigation->getNextPage())-->
+      <li class="active"|cond="$page == $page_no || (!$page && $page_no == 1)"><a href="{getUrl('page',$page_no,'module_srl','')}">{$page_no}</a></li>
+      <!--@end-->
+      <li><a href="{getUrl('page',$page_navigation->last_page,'module_srl','')}">끝 페이지 &raquo;</a></li>
+    </ul>
+  </div>
+
+</div>

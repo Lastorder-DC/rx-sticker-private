@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skin version="0.2">
+	<title xml:lang="ko">Hios 스티커 모듈 스킨</title>
+	<description xml:lang="ko">Hios 스티커 모듈 스킨</description>
+	<version>0.1</version>
+	<date>2017-12-24</date>
+	<author email_address="hello@calvinsnax.xyz" link="http://calvinsnax.xyz">
+		<name xml:lang="ko">CalvinSnax</name>
+	</author>
+	<license>GPLv2</license>
+</skin>

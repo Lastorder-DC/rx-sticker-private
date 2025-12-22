@@ -67,7 +67,10 @@ class stickerView extends sticker
 				$args1->sticker_srl = $sticker->sticker_srl;
 				$args1->no = 0;
 				$output1 = executeQueryArray('sticker.getStickerMainImage', $args1);
-				$sticker->main_image = $output1->data[0]->url;
+				if (!empty($output1->data[0]))
+				{
+					$sticker->main_image = $output1->data[0]->url;
+				}
 			}
 
 			Context::addJsFilter($this->module_path.'tpl/filter', 'search.xml');
@@ -102,7 +105,7 @@ class stickerView extends sticker
 			$is_bougth = $oStickerModel->checkBuySticker($logged_info->member_srl, $sticker_srl);
 		}
 
-		$title = $output->data->title || "Untitled";
+		$title = !empty($output->data->title) ? $output->data->title : "Untitled";
 		Context::addBrowserTitle($output->data->title);
 
 		$oStickerController = getController('sticker');
@@ -132,6 +135,7 @@ class stickerView extends sticker
 
 		$sticker_srl = Context::get('sticker_srl');
 		$sticker = false;
+		$output1 = null;
 
 		if($sticker_srl){
 			$args = new stdClass();
@@ -272,7 +276,10 @@ class stickerView extends sticker
 			$args1->sticker_srl = $sticker->sticker_srl;
 			$args1->no = 0;
 			$output1 = executeQueryArray('sticker.getStickerMainImage', $args1);
-			$sticker->main_image = $output1->data[0]->url;
+			if (!empty($output1->data[0]))
+			{
+				$sticker->main_image = $output1->data[0]->url;
+			}
 		}
 
 		Context::set('sticker', $output->data);

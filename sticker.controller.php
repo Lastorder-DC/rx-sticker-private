@@ -209,7 +209,7 @@ class stickerController extends sticker
 			return new BaseObject();
 		}
 
-		$temp_output = preg_replace_callback('/<!--BeforeComment\(([0-9]+),([0-9]+)\)-->.*{@sticker:([0-9]+)\|([0-9]+)}.*<!--AfterComment\([0-9]+,[0-9]+\)-->/', array($this, 'stickerCommentCallback'), $obj);
+		$temp_output = preg_replace_callback('/<!--BeforeComment\(([0-9]+),([0-9]+)\)-->.*?{@sticker:([0-9]+)\|([0-9]+)}.*?<!--AfterComment\([0-9]+,[0-9]+\)-->/s', array($this, 'stickerCommentCallback'), $obj);
 		if($temp_output){
 			$obj = $temp_output;
 		}
@@ -221,14 +221,12 @@ class stickerController extends sticker
 		if(!empty($output->data)){
 			$data = $output->data;
 			$file_name = substr($data->file_name, 0, strrpos($data->file_name, "."));
-//!!!S
-			if(!$_COOKIE['txtmode']){
-				// $part = '<!--BeforeComment('.$matches[1].','.$matches[2].')--><div class="comment_'.$matches[1].'_'.$matches[2].' xe_content"><a href="/?mid=sticker&sticker_srl='.$data->sticker_srl.'" title="'.$data->title.'" style="display:block;background-image:url('.$data->url.');background-repeat:no-repeat;background-position:0 50%;min-width:200px !important;min-height:200px !important;border-radius:3px;" alt="'.$file_name.'"></a></div><!--AfterComment('.$matches[1].','.$matches[2].')-->';
+
+			if(!isset($_COOKIE['txtmode']) || !$_COOKIE['txtmode']){
 				$part = '<!--BeforeComment('.$matches[1].','.$matches[2].')--><div class="comment_'.$matches[1].'_'.$matches[2].' xe_content"><a href="/?mid=sticker&sticker_srl='.$data->sticker_srl.'" title="'.$data->title.'"><img src="'.$data->url.'" style="width:120px;height:120px;border-radius:3px;" alt="'.$file_name.'"></a></div><!--AfterComment('.$matches[1].','.$matches[2].')-->';
 			} else {
 				$part = '<!--BeforeComment('.$matches[1].','.$matches[2].')--><div class="txtmode comment_'.$matches[1].'_'.$matches[2].' xe_content"><p style="margin:1em;">데이터 절약 모드 작동중<BR><a href="/?mid=sticker&sticker_srl='.$data->sticker_srl.'" target="_blank" style="color:#777;">('.$data->title.')</a></p></div><!--AfterComment('.$matches[1].','.$matches[2].')-->';
 			}
-//!!!E
 
 		} else {
 			$delete_msg = $this->_getStickerDeleteMsg();
@@ -1167,8 +1165,6 @@ class stickerController extends sticker
 					}
 
 				}
-			} else {
-				//return false;
 			}
 
 			$this->_insertSickerFile($sticker_srl, $file_srl, $source_filename, $uploaded_filename, $is_update ? $file_count : $file_count++);
@@ -1295,8 +1291,6 @@ class stickerController extends sticker
 						FileHandler::removeFile($output_name);
 					}
 				}
-			} else {
-				//return false;
 			}
 
 			$this->_deleteFile($origin_obj->file_srl);
@@ -1409,14 +1403,14 @@ class stickerController extends sticker
 	function insertStickerLog($obj, $sequence = false){
 		$logged_info = Context::get('logged_info');
 		$idx = $sequence ? $sequence : getNextSequence();
-		$sticker_srl = $obj->sticker_srl ? $obj->sticker_srl : 0;
-		$sticker_file_srl = $obj->sticker_file_srl ? $obj->sticker_file_srl : null;
+		$sticker_srl = isset($obj->sticker_srl) && $obj->sticker_srl ? $obj->sticker_srl : 0;
+		$sticker_file_srl = isset($obj->sticker_file_srl) && $obj->sticker_file_srl ? $obj->sticker_file_srl : null;
 		//$member_srl = $obj->member_srl ? $obj->member_srl : $logged_info ? $logged_info->member_srl : 0; //php 8 error
-		if($obj->member_srl)
+		if(isset($obj->member_srl) && $obj->member_srl)
 		{
 			$member_srl = $obj->member_srl;
 		}
-		elseif(Context::get('logged_info'))
+		elseif($logged_info)
 		{
 			$member_srl = $logged_info->member_srl;
 		}
@@ -1425,20 +1419,20 @@ class stickerController extends sticker
 			$member_srl = 0;
 		}
 
-		$type = $obj->type ? $obj->type : null;
-		$comment_srl = $obj->comment_srl ? $obj->comment_srl : null;
-		$document_srl = $obj->document_srl ? $obj->document_srl : null;
-		$content = $obj->content ? $obj->content : null;
+		$type = isset($obj->type) && $obj->type ? $obj->type : null;
+		$comment_srl = isset($obj->comment_srl) && $obj->comment_srl ? $obj->comment_srl : null;
+		$document_srl = isset($obj->document_srl) && $obj->document_srl ? $obj->document_srl : null;
+		$content = isset($obj->content) && $obj->content ? $obj->content : null;
 		//$point = $obj->point ? $obj->point : $obj->use_point ? $obj->use_point : $obj->price ? $obj->price : null; //php 8 error
-		if($obj->point)
+		if(isset($obj->point) && $obj->point)
 		{
 			$point = $obj->point;
 		}
-		elseif($obj->use_point)
+		elseif(isset($obj->use_point) && $obj->use_point)
 		{
 			$point = $obj->use_point;
 		}
-		elseif($obj->price)
+		elseif(isset($obj->price) && $obj->price)
 		{
 			$point = $obj->price;
 		}
@@ -1447,8 +1441,8 @@ class stickerController extends sticker
 			$point = null;
 		}
 
-		$ipaddress = $obj->ipaddress ? $obj->ipaddress : $_SERVER['REMOTE_ADDR'];
-		$regdate = $obj->regdate ? $obj->regdate : date("YmdHis");
+		$ipaddress = isset($obj->ipaddress) && $obj->ipaddress ? $obj->ipaddress : $_SERVER['REMOTE_ADDR'];
+		$regdate = isset($obj->regdate) && $obj->regdate ? $obj->regdate : date("YmdHis");
 
 		if(!$type){
 			return false;

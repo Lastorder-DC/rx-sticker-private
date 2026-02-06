@@ -270,8 +270,6 @@ class stickerAdminController extends sticker
 		$this->setRedirectUrl($returnUrl);
 
 	}
-
-
 }
 
 /* End of file sticker.admin.controller.php */

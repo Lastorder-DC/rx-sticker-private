@@ -527,8 +527,6 @@ class stickerController extends sticker
 		$this->_deleteStickerBuyByStickerSrl($sticker_srl);
 
 		$this->setMessage('success_deleted');
-
-
 	}
 
 

@@ -1,11 +1,27 @@
 <query id="getStickerBlockList" action="select">
 	<tables>
 		<table name="sticker_block" />
+		<table name="sticker" />
+		<table name="sticker_files" type="left join">
+			<conditions>
+				<condition operation="equal" column="sticker_files.sticker_srl" default="sticker_block.sticker_srl" notnull="notnull" pipe="and" />
+				<condition operation="equal" column="sticker_files.no" default="0" notnull="notnull" pipe="and" />
+			</conditions>
+		</table>
 	</tables>
 	<columns>
-		<column name="sticker_srl" />
+		<column name="sticker.sticker_srl" />
+		<column name="sticker.title" />
+		<column name="sticker_files.url" alias="main_image" />
 	</columns>
 	<conditions>
 		<condition operation="equal" column="member_srl" var="member_srl" notnull="notnull" filter="number" />
+		<condition operation="equal" column="sticker.sticker_srl" default="sticker_block.sticker_srl" pipe="and" />
 	</conditions>
+	<navigation>
+		<index var="sort_index" default="sticker_block.srl" order="order_type" />
+		<list_count var="list_count" default="20" />
+		<page_count var="page_count" default="10" />
+		<page var="page" default="1" />
+	</navigation>
 </query>

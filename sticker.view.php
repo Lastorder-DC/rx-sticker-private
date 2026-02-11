@@ -281,23 +281,7 @@ class stickerView extends sticker
 		$args->member_srl = $logged_info->member_srl;
 		$output = executeQueryArray('sticker.getStickerBlockList', $args);
 
-		$sticker_list = array();
-		if($output->toBool() && !empty($output->data)){
-			foreach($output->data as $block){
-				$args1 = new stdClass();
-				$args1->sticker_srl = $block->sticker_srl;
-				$output1 = executeQuery('sticker.getSticker', $args1);
-				if(!$output1->toBool() || empty($output1->data)){
-					continue;
-				}
-
-				$sticker = $output1->data;
-
-				$sticker_list[] = $sticker;
-			}
-		}
-
-		Context::set('sticker', $sticker_list);
+		Context::set('sticker', $output->data);
 		Context::set('page_navigation', $output->page_navigation);
 
 		$this->setTemplateFile('member_block');

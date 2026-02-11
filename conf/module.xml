@@ -27,6 +27,7 @@
 		<action name="dispStickerWrite" type="view" />
 		<action name="dispStickerDelete" type="view" />
 		<action name="dispStickerMylist" type="view" />
+		<action name="dispStickerMyBlock" type="view" />
 
 		<action name="procStickerInsert" type="controller" />
 		<action name="procStickerCommentInsert" type="controller" />

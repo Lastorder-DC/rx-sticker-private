@@ -1,0 +1,57 @@
+<load target="./css/mypage.css" />
+
+<script>
+function deleteBlockSticker(sticker_srl){
+	var params = {
+		sticker_srl: sticker_srl
+	};
+
+	exec_json('sticker.procStickerBlockDelete', params, function(response){
+		if(response.error){
+			alert(response.message);
+			return;
+		}
+
+		window.location.reload();
+	});
+}
+</script>
+
+<div style="margin:10px">
+	<div style="float:left; margin-bottom:10px"><h2>차단 목록</h2></div>
+	<div style="float:right; margin-bottom:10px"><a href="/sticker" class="sbtn_small sbtn-white">Stick Shop <i class="fas fa-external-link-square-alt"></i></a></div>
+</div>
+
+<div id="sticker_mypage" class="stk_bd">
+	<div id="sticker_table">
+		<table class="table table-striped table-hover">
+			<thead>
+				<tr>
+					<th><span>번호</span></th>
+					<th><span>제목</span></th>
+					<th><span>설정</span></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr loop="$sticker => $no, $sticker">
+					<td><span>{$no}</span></td>
+					<td><a href="{getUrl('', 'mid', 'sticker', 'sticker_srl', $sticker->sticker_srl)}"><img src="{$sticker->main_image}" class="sticker_sample"><span class="sticker_title">{$sticker->title}</span></a></td>
+					<td><a href="javascript:;" class="stk_lnk" onclick="deleteBlockSticker('{$sticker->sticker_srl}'); return false;">차단 해제</a></td>
+				</tr>
+				<tr cond="!$sticker">
+					<td colspan="3">차단한 스티커가 없습니다.</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<div class="text-center" cond="$page_navigation">
+		<ul class="pagination">
+			<li><a href="{getUrl('page','','module_srl','')}">&laquo; 첫 페이지</a></li>
+			<!--@while($page_no = $page_navigation->getNextPage())-->
+			<li class="active"|cond="$page == $page_no || (!$page && $page_no == 1)"><a href="{getUrl('page',$page_no,'module_srl','')}">{$page_no}</a></li>
+			<!--@end-->
+			<li><a href="{getUrl('page',$page_navigation->last_page,'module_srl','')}">끝 페이지 &raquo;</a></li>
+		</ul>
+	</div>
+</div>

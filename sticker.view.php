@@ -289,6 +289,50 @@ class stickerView extends sticker
 
 	}
 
+	function dispStickerMyBlock(){
+		$logged_info = Context::get('logged_info');
+		if(!$logged_info){
+			return new BaseObject(-1,'invalid_access');
+		}
+
+		$args = new stdClass();
+		$args->page = Context::get('page');
+		$args->list_count = 10;
+		$args->page_count = 10;
+		$args->order_type = 'desc';
+		$args->member_srl = $logged_info->member_srl;
+		$output = executeQueryArray('sticker.getStickerBlockList', $args);
+
+		$sticker_list = array();
+		if($output->toBool() && !empty($output->data)){
+			foreach($output->data as $block){
+				$args1 = new stdClass();
+				$args1->sticker_srl = $block->sticker_srl;
+				$output1 = executeQuery('sticker.getSticker', $args1);
+				if(!$output1->toBool() || empty($output1->data)){
+					continue;
+				}
+
+				$sticker = $output1->data;
+
+				$args2 = new stdClass();
+				$args2->sticker_srl = $sticker->sticker_srl;
+				$args2->no = 0;
+				$output2 = executeQueryArray('sticker.getStickerMainImage', $args2);
+				if(!empty($output2->data[0])){
+					$sticker->main_image = $output2->data[0]->url;
+				}
+
+				$sticker_list[] = $sticker;
+			}
+		}
+
+		Context::set('sticker', $sticker_list);
+		Context::set('page_navigation', $output->page_navigation);
+
+		$this->setTemplateFile('member_block');
+	}
+
 
 }
 

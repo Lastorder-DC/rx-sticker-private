@@ -39,6 +39,7 @@ class stickerController extends sticker
 
 			$oMemberController = getController('member');
 			$oMemberController->addMemberMenu('dispStickerMylist', 'cmd_sticker_mypage');
+			$oMemberController->addMemberMenu('dispStickerMyBlock', '차단한 스티커');
 		}
 
 		return new BaseObject();

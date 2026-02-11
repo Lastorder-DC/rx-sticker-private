@@ -68,7 +68,8 @@
 		if(btn == 'buy_btn'){
 
 			var price = $this.attr('class').replace(/.*price_([0-9]+).*/, '$1');
-			var msg = confirm("포인트 "+price+"을 사용하여 스티커를 구매하시겠습니까?");
+			var text = (price == 0) ? "스티커를 추가하시겠습니까?" : "포인트 " + price + "을 사용하여 스티커를 구매하시겠습니까?";
+			var msg = confirm(text);
 
 			msg && exec_xml("sticker","procStickerBuy", {mid:'sticker', sticker_srl:sticker_srl}, function(ret_obj){
 				alert("구매하였습니다");

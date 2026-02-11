@@ -2,10 +2,17 @@
 	<tables>
 		<table name="sticker" />
 		<table name="sticker_buy" />
+		<table name="sticker_files" type="left join">
+			<conditions>
+				<condition operation="equal" column="sticker_files.sticker_srl" default="sticker.sticker_srl" notnull="notnull" pipe="and" />
+				<condition operation="equal" column="sticker_files.no" default="0" notnull="notnull" pipe="and" />
+			</conditions>
+		</table>
 	</tables>
 	<columns>
 		<column name="sticker.title" />
 		<column name="sticker_buy.*" />
+		<column name="sticker_files.url" alias="main_image" />
 	</columns>
 	<conditions>
 		<condition operation="equal" column="sticker_buy.member_srl" var="member_srl" />

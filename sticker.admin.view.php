@@ -116,17 +116,12 @@ class stickerAdminView extends sticker
 		$oMemberModel = getModel('member');
 		$oStickerModel = getModel('sticker');
 		foreach($output->data as &$value){
-			$args1 = new stdClass();
-			$args1->sticker_srl = $value->sticker_srl;
-			$args1->no = 0;
-			$output1 = executeQuery('sticker.getStickerMainImage', $args1);
-			$value->main_image = $output1->data->url;
-
 			$oMember = $oMemberModel->getMemberInfoByMemberSrl($value->member_srl);
 			$value->nick_name = $oMember->nick_name;
 
 			$oSticker = $oStickerModel->getSticker($value->sticker_srl);
 			$value->title = $oSticker->title;
+			$value->main_image = $oSticker->main_image;
 		}
 		Context::set('date', date("YmdHis"));
 		Context::set('list', $output->data);
@@ -150,12 +145,6 @@ class stickerAdminView extends sticker
 		if(!$oSticker){
 			return new BaseObject(-1,'msg_invalid_sticker');
 		}
-
-		$args1 = new stdClass();
-		$args1->sticker_srl = $output->data->sticker_srl;
-		$args1->no = 0;
-		$output1 = executeQuery('sticker.getStickerMainImage', $args1);
-		$oSticker->main_image = $output1->data->url;
 
 		$oMemberModel = getModel('member');
 		$oMember = $oMemberModel->getMemberInfoByMemberSrl($output->data->member_srl);
@@ -186,17 +175,12 @@ class stickerAdminView extends sticker
 		$oMemberModel = getModel('member');
 		$oStickerModel = getModel('sticker');
 		foreach($output->data as &$value){
-			$args1 = new stdClass();
-			$args1->sticker_srl = $value->sticker_srl;
-			$args1->no = 0;
-			$output1 = executeQuery('sticker.getStickerMainImage', $args1);
-			$value->main_image = $output1->data->url;
-
 			$oMember = $oMemberModel->getMemberInfoByMemberSrl($value->member_srl);
 			$value->nick_name = $oMember->nick_name;
 
 			$oSticker = $oStickerModel->getSticker($value->sticker_srl);
 			$value->title = $oSticker->title;
+			$value->main_image = $oSticker->main_image;
 		}
 		Context::set('list', $output->data);
 		Context::set('page_navigation', $output->page_navigation);

@@ -207,14 +207,52 @@ class stickerController extends sticker
 
 
 	function triggerBeforeDisplay(&$obj){
-		if(!Context::get('document_srl')){
-			return new BaseObject();
+		$is_content_object = is_object($obj) && isset($obj->content);
+		$content = $is_content_object ? $obj->content : $obj;
+
+		$content = $this->_replaceUndefinedStickerSrlInContent($content);
+		$content = $this->_replaceBlockedStickerImgInContent($content);
+
+		if(Context::get('document_srl')){
+			$temp_output = preg_replace_callback('/<!--BeforeComment\(([0-9]+),([0-9]+)\)-->.*?{@sticker:([0-9]+)\|([0-9]+)}.*?<!--AfterComment\([0-9]+,[0-9]+\)-->/s', array($this, 'stickerCommentCallback'), $content);
+			if($temp_output){
+				$content = $temp_output;
+			}
 		}
 
-		$temp_output = preg_replace_callback('/<!--BeforeComment\(([0-9]+),([0-9]+)\)-->.*?{@sticker:([0-9]+)\|([0-9]+)}.*?<!--AfterComment\([0-9]+,[0-9]+\)-->/s', array($this, 'stickerCommentCallback'), $obj);
-		if($temp_output){
-			$obj = $temp_output;
+		if($is_content_object){
+			$obj->content = $content;
+		} else {
+			$obj = $content;
 		}
+
+		return new BaseObject();
+	}
+
+	function _replaceBlockedStickerImgInContent($content){
+		if(!$content){
+			return $content;
+		}
+
+		$logged_info = Context::get('logged_info');
+		if(!$logged_info || !$logged_info->member_srl){
+			return $content;
+		}
+
+		return preg_replace_callback('/<a\b[^>]*href=("|\')\/\?mid=sticker(?:&amp;|&)sticker_srl=([0-9]+)\1[^>]*>.*?<img\b[^>]*>.*?<\/a>/is', array($this, '_replaceBlockedStickerImgAnchorCallback'), $content);
+	}
+
+	function _replaceBlockedStickerImgAnchorCallback($matches){
+		$logged_info = Context::get('logged_info');
+		$member_srl = $logged_info ? $logged_info->member_srl : 0;
+		$sticker_srl = intval($matches[2]);
+
+		if(!$this->_isBlockedSticker($member_srl, $sticker_srl)){
+			return $matches[0];
+		}
+
+		$blocked_img_src = './modules/sticker/skins/default/blocked.png';
+		return preg_replace('/(<img\b[^>]*\bsrc=)(["\']).*?\2/i', '$1$2'.$blocked_img_src.'$2', $matches[0], 1);
 	}
 
 	function stickerCommentCallback($matches){

@@ -62,17 +62,6 @@ class stickerView extends sticker
 
 			$output = executeQueryArray('sticker.getStickerList', $args);
 
-			foreach($output->data as &$sticker){
-				$args1 = new stdClass();
-				$args1->sticker_srl = $sticker->sticker_srl;
-				$args1->no = 0;
-				$output1 = executeQueryArray('sticker.getStickerMainImage', $args1);
-				if (!empty($output1->data[0]))
-				{
-					$sticker->main_image = $output1->data[0]->url;
-				}
-			}
-
 			Context::addJsFilter($this->module_path.'tpl/filter', 'search.xml');
 			Context::set('list', $output->data);
 			Context::set('page_navigation', $output->page_navigation);

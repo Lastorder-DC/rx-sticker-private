@@ -1,9 +1,16 @@
 <query id="getStickerList" action="select">
 	<tables>
 		<table name="sticker" />
+		<table name="sticker_files" type="left join">
+			<conditions>
+				<condition operation="equal" column="sticker_files.sticker_srl" default="sticker.sticker_srl" notnull="notnull" pipe="and" />
+				<condition operation="equal" column="sticker_files.no" default="0" notnull="notnull" pipe="and" />
+			</conditions>
+		</table>
 	</tables>
 	<columns>
-		<column name="*" />
+		<column name="sticker.*" />
+		<column name="sticker_files.url" alias="main_image" />
 	</columns>
 	<conditions>
 		<condition operation="equal" column="status" default="PUBLIC" var="status" pipe="and" />

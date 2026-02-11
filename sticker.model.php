@@ -79,15 +79,10 @@ class stickerModel extends sticker
 					for($i=$countMovePos; $i>0; $i--){
 						$current = current($prev_data);
 
-						$args = new stdClass();
-						$args->sticker_srl = $current->sticker_srl;
-						$args->no = 0;
-						$output1 = executeQuery('sticker.getStickerMainImage', $args);
-
 						$obj = new stdClass();
 						$obj->sticker_srl = $current->sticker_srl;
 						$obj->title = $current->title;
-						$obj->main_image = $output1->data->url;
+						$obj->main_image = $current->main_image;
 
 						if($i !== 1){
 							next($prev_data);
@@ -103,15 +98,10 @@ class stickerModel extends sticker
 				if($count >= $list_count){
 					break;
 				}
-				$args1 = new stdClass();
-				$args1->sticker_srl = $sticker->sticker_srl;
-				$args1->no = 0;
-				$output1 = executeQueryArray('sticker.getStickerMainImage', $args1);
-			
 				$obj = new stdClass();
 				$obj->sticker_srl = $sticker->sticker_srl;
 				$obj->title = $sticker->title;
-				$obj->main_image = $output1->data[0]->url;
+				$obj->main_image = $sticker->main_image;
 				array_push($sticker_array, $obj);
 				$count++;
 			}

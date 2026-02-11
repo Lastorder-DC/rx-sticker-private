@@ -573,6 +573,48 @@ class stickerController extends sticker
 		$this->add('sticker_srl', $sticker_srl);
 	}
 
+	function procStickerBlockInsert(){
+		$logged_info = Context::get('logged_info');
+		if(!$logged_info){
+			return new BaseObject(-1,'msg_invalid_access');
+		}
+
+		$sticker_srl = Context::get('sticker_srl');
+		if(!$sticker_srl){
+			return new BaseObject(-1,'invalid_sticker');
+		}
+
+		if($this->_isBlockedSticker($logged_info->member_srl, $sticker_srl)){
+			return new BaseObject(-1,'already_blocked_sticker');
+		}
+
+		$output = $this->_insertStickerBlock($logged_info->member_srl, $sticker_srl);
+		if(!$output->toBool()){
+			return $output;
+		}
+
+		$this->setMessage('success_saved');
+	}
+
+	function procStickerBlockDelete(){
+		$logged_info = Context::get('logged_info');
+		if(!$logged_info){
+			return new BaseObject(-1,'msg_invalid_access');
+		}
+
+		$sticker_srl = Context::get('sticker_srl');
+		if(!$sticker_srl){
+			return new BaseObject(-1,'invalid_sticker');
+		}
+
+		$output = $this->_deleteStickerBlock($logged_info->member_srl, $sticker_srl);
+		if(!$output->toBool()){
+			return $output;
+		}
+
+		$this->setMessage('success_deleted');
+	}
+
 
 	function procStickerInsert(){
 		if( !(extension_loaded('gd') && function_exists('gd_info')) ){
@@ -1567,6 +1609,68 @@ class stickerController extends sticker
 		}
 
 		return false;
+	}
+
+	function _insertStickerBlock($member_srl, $sticker_srl){
+		$args = new stdClass();
+		$args->srl = getNextSequence();
+		$args->member_srl = $member_srl;
+		$args->sticker_srl = $sticker_srl;
+		$args->regdate = date('YmdHis');
+
+		$output = executeQuery('sticker.insertStickerBlock', $args);
+		if(!$output->toBool()){
+			return $output;
+		}
+
+		if(!isset($_SESSION['sticker_block_list'])){
+			$_SESSION['sticker_block_list'] = array();
+		}
+
+		$_SESSION['sticker_block_list'][$member_srl][$sticker_srl] = true;
+
+		return $output;
+	}
+
+	function _deleteStickerBlock($member_srl, $sticker_srl){
+		$args = new stdClass();
+		$args->member_srl = $member_srl;
+		$args->sticker_srl = $sticker_srl;
+
+		$output = executeQuery('sticker.deleteStickerBlock', $args);
+		if(!$output->toBool()){
+			return $output;
+		}
+
+		if(isset($_SESSION['sticker_block_list'][$member_srl][$sticker_srl])){
+			unset($_SESSION['sticker_block_list'][$member_srl][$sticker_srl]);
+		}
+
+		return $output;
+	}
+
+	function _isBlockedSticker($member_srl, $sticker_srl){
+		if(!$member_srl || !$sticker_srl){
+			return false;
+		}
+
+		if(!isset($_SESSION['sticker_block_list'])){
+			$_SESSION['sticker_block_list'] = array();
+		}
+
+		if(!isset($_SESSION['sticker_block_list'][$member_srl])){
+			$_SESSION['sticker_block_list'][$member_srl] = array();
+			$args = new stdClass();
+			$args->member_srl = $member_srl;
+			$output = executeQueryArray('sticker.getStickerBlockList', $args);
+			if($output->toBool() && !empty($output->data)){
+				foreach($output->data as $item){
+					$_SESSION['sticker_block_list'][$member_srl][$item->sticker_srl] = true;
+				}
+			}
+		}
+
+		return isset($_SESSION['sticker_block_list'][$member_srl][$sticker_srl]);
 	}
 
 	function _checkCorrectTag($tag){

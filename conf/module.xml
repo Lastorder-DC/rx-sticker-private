@@ -36,6 +36,8 @@
 		<action name="procStickerBuyDelete" type="controller" />
 		<action name="procStickerBuyOrderChange" type="controller" />
 		<action name="procStickerGetStickerSrl" type="controller" />
+		<action name="procStickerBlockInsert" type="controller" />
+		<action name="procStickerBlockDelete" type="controller" />
 
 		<action name="dispStickerAdminStickerList" type="view" admin_index="true" />
 		<action name="dispStickerAdminStickerView" type="view" />

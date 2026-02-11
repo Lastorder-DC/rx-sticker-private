@@ -1,0 +1,59 @@
+<load target="./css/mypage.css" />
+<load target="../../../member/skins/hios_member_skin/style/hios.css" />
+<load target="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" />
+
+<script>
+function deleteBlockSticker(sticker_srl){
+	var params = {
+		sticker_srl: sticker_srl
+	};
+
+	exec_json('sticker.procStickerBlockDelete', params, function(response){
+		if(response.error){
+			alert(response.message);
+			return;
+		}
+
+		window.location.reload();
+	});
+}
+</script>
+
+<include target="../../../member/skins/hios_member_skin/header_profile.html" />
+<include target="../../../member/skins/hios_member_skin/common_header.html" />
+
+<div id="sticker_mypage" class="stk_bd">
+	<div id="sticker_table">
+		<table class="hi table table-divider margin-bottom-small">
+			<thead>
+				<tr>
+					<th><span>번호</span></th>
+					<th><span>제목</span></th>
+					<th><span>설정</span></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr loop="$sticker => $no, $sticker">
+					<td><span>{$no}</span></td>
+					<td>
+						<a href="{getUrl('', 'mid', 'sticker', 'sticker_srl', $sticker->sticker_srl)}"><img src="{$sticker->main_image}" class="sticker_sample"><span class="sticker_title">{$sticker->title}</span></a>
+					</td>
+					<td><a href="javascript:;" class="stk_lnk" onclick="deleteBlockSticker('{$sticker->sticker_srl}'); return false;">차단 해제</a></td>
+				</tr>
+				<tr cond="!$sticker">
+					<td colspan="3">차단한 스티커가 없습니다.</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<div class="hi flex flex-middle" cond="$page_navigation">
+		<ul class="hi pagination">
+			<li><a href="{getUrl('page','','module_srl','')}">&laquo; 첫 페이지</a></li>
+			<!--@while($page_no = $page_navigation->getNextPage())-->
+			<li class="active"|cond="$page == $page_no || (!$page && $page_no == 1)"><a href="{getUrl('page',$page_no,'module_srl','')}">{$page_no}</a></li>
+			<!--@end-->
+			<li><a href="{getUrl('page',$page_navigation->last_page,'module_srl','')}">끝 페이지 &raquo;</a></li>
+		</ul>
+	</div>
+</div>

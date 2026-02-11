@@ -147,8 +147,21 @@
 
 if(typeof window.blockSticker !== 'function'){
 	window.blockSticker = function(sticker_srl){
-		console.log('blockSticker called:', sticker_srl);
-		// 실제 차단 로직(AJAX 등)을 여기에 구현하거나, 
-		// 메인 로직에서 이 함수를 덮어씌워야 합니다.
+		if(!sticker_srl){
+			return;
+		}
+
+		if(!confirm('팬비닛콘을 차단하시겠습니까?')){
+			return;
+		}
+
+		exec_json('sticker.procStickerBlockInsert', { sticker_srl: sticker_srl }, function(response){
+			if(response.error){
+				alert(response.message);
+				return;
+			}
+
+			alert(response.message);
+		});
 	};
 }

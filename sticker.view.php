@@ -271,17 +271,6 @@ class stickerView extends sticker
 		$args->date = date("YmdHis");
 		$output = executeQueryArray('sticker.getStickerMylist', $args);
 
-		foreach($output->data as &$sticker){
-			$args1 = new stdClass();
-			$args1->sticker_srl = $sticker->sticker_srl;
-			$args1->no = 0;
-			$output1 = executeQueryArray('sticker.getStickerMainImage', $args1);
-			if (!empty($output1->data[0]))
-			{
-				$sticker->main_image = $output1->data[0]->url;
-			}
-		}
-
 		Context::set('sticker', $output->data);
 		Context::set('page_navigation', $output->page_navigation);
 
@@ -314,14 +303,6 @@ class stickerView extends sticker
 				}
 
 				$sticker = $output1->data;
-
-				$args2 = new stdClass();
-				$args2->sticker_srl = $sticker->sticker_srl;
-				$args2->no = 0;
-				$output2 = executeQueryArray('sticker.getStickerMainImage', $args2);
-				if(!empty($output2->data[0])){
-					$sticker->main_image = $output2->data[0]->url;
-				}
 
 				$sticker_list[] = $sticker;
 			}

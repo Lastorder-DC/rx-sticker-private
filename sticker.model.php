@@ -211,15 +211,10 @@ class stickerModel extends sticker
 			$oSticker = $this->getSticker($value);
 
 			if($key < 5 && $oSticker && $oSticker->status != "STOP"){
-				$args = new stdClass();
-				$args->sticker_srl = $value;
-				$args->no = 0;
-				$output = executeQuery('sticker.getStickerMainImage', $args);
-
 				$obj = new stdClass();
 				$obj->sticker_srl = $oSticker->sticker_srl;
 				$obj->title = $oSticker->title;
-				$obj->main_image = $output->data->url;
+				$obj->main_image = $oSticker->main_image;
 
 				array_push($stickerArray, $obj);
 			}

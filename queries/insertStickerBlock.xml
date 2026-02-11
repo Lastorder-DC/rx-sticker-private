@@ -1,0 +1,11 @@
+<query id="insertStickerBlock" action="insert">
+	<tables>
+		<table name="sticker_block" />
+	</tables>
+	<columns>
+		<column name="srl" var="srl" notnull="notnull" filter="number" />
+		<column name="member_srl" var="member_srl" notnull="notnull" filter="number" />
+		<column name="sticker_srl" var="sticker_srl" notnull="notnull" filter="number" />
+		<column name="regdate" var="regdate" notnull="notnull" filter="number" />
+	</columns>
+</query>

@@ -328,7 +328,7 @@ class stickerController extends sticker
 
 		$buyCount = $this->_getStickerBuyCount($member_srl);
 		if($this->module_config->buy_limit != 0 && $buyCount >= $this->module_config->buy_limit){
-			return new BaseObject(-1,'msg_exceed_bougth_count');
+			return new BaseObject(-1,'팬비닛콘 구매 제한(50개)을 초과했습니다');
 		}
 
 		if(!$this->grant->free){
@@ -372,69 +372,106 @@ class stickerController extends sticker
 
 	}
 
-	function procStickerBuyOrderChange(){
+	function procStickerBuyOrderChange()
+	{
+		// 1. 요청 파라미터 및 회원 정보 수신
 		$sticker_srl = Context::get('sticker_srl');
+		$move = Context::get('move'); // 'up' or 'down'
 		$logged_info = Context::get('logged_info');
-		$move = Context::get('move');
+		
+		// 2. 기본 유효성 검사 (로그인 여부, 필수 파라미터 확인)
+		if (!$logged_info) {
+			return new BaseObject(-1, 'msg_invalid_access');
+		}
+		
+		if (!$sticker_srl || !in_array($move, ['up', 'down'])) {
+			return new BaseObject(-1, 'msg_invalid_access');
+		}
+
 		$member_srl = $logged_info->member_srl;
-		$date = $this->module_config->start_time;
+		$date = $this->module_config->start_time ?? null; // 설정값이 없을 경우를 대비해 null 처리
 
-		if(!$logged_info || !$sticker_srl || !$move || !($move && in_array($move, array('up', 'down'))) ) {
-			return new BaseObject(-1,'msg_invalid_access');
+		// 3. 현재 선택한 스티커 정보 가져오기
+		$currentArgs = new stdClass();
+		$currentArgs->member_srl = $member_srl;
+		$currentArgs->sticker_srl = $sticker_srl;
+		$currentArgs->date = $date;
+		
+		$output = executeQuery('sticker.getStickerBuy', $currentArgs);
+
+		// 스티커 정보가 없거나 쿼리 실패 시
+		if (!$output->toBool() || empty($output->data)) {
+			return new BaseObject(-1, 'msg_invalid_sticker');
+		}
+		
+		// 데이터가 배열로 온다면 중복된 데이터가 있다는 뜻이므로 에러 처리 (기존 로직 유지)
+		if (is_array($output->data)) {
+			return new BaseObject(-1, 'msg_multiple_useable_same_sticker');
 		}
 
-		$args = new stdClass();
-		$args->member_srl = $member_srl;
-		$args->sticker_srl = $sticker_srl;
-		$args->date = $date;
-		$output = executeQuery('sticker.getStickerBuy', $args);
-		if( !$output->toBool() || empty($output->data) ){
-			return new BaseObject(-1,'msg_invalid_sticker');
-		}
-		if(is_array($output->data)){
-			return new BaseObject(-1,'msg_multiple_useable_same_sticker');
-		}
-		$list_order = $output->data->list_order;
+		// 현재 스티커의 순서값 저장
+		$current_list_order = $output->data->list_order;
 
-		$args1 = new stdClass();
-		$args1->member_srl = $member_srl;
-		if($move == 'up'){
-			$args1->order_up = $list_order;
-			$args1->order_type = 'desc';
+
+		// 4. 순서를 맞바꿀 대상 스티커(Target) 찾기
+		$targetArgs = new stdClass();
+		$targetArgs->member_srl = $member_srl;
+		$targetArgs->list_count = 1;
+		$targetArgs->page = 1;
+		$targetArgs->date = $date;
+
+		// 이동 방향에 따라 쿼리 조건 설정
+		if ($move == 'up') {
+			// 위로 이동: 현재 순서보다 큰(혹은 작은) 바로 앞의 데이터를 내림차순으로 1개 조회
+			$targetArgs->order_up = $current_list_order; // xml 쿼리에서 정의된 변수명으로 추정
+			$targetArgs->order_type = 'desc';
 		} else {
-			$args1->order_down = $list_order;
-			$args1->order_type = 'asc';
+			// 아래로 이동: 현재 순서보다 작은(혹은 큰) 바로 뒤의 데이터를 오름차순으로 1개 조회
+			$targetArgs->order_down = $current_list_order;
+			$targetArgs->order_type = 'asc';
 		}
 
-		$args1->list_count = 1;
-		$args1->page = 1;
-		$args1->date = $date;
-		$output = executeQuery('sticker.getStickerOrder', $args1);
-		if( !$output->toBool() || empty($output->data) ){
-			return new BaseObject(-1,'msg_invalid_access');
-		}
-		$getStickerObj = current($output->data);
-		$swap_sticker_srl = $getStickerObj->sticker_srl;
-		$swap_list_order = $getStickerObj->list_order;
+		$targetOutput = executeQuery('sticker.getStickerOrder', $targetArgs);
 
-		if(!isset($swap_sticker_srl) || !isset($swap_list_order)){
-			return new BaseObject(-1,'msg_exception_process');
+		// 대상 스티커가 존재하지 않으면(맨 위거나 맨 아래인 경우) 처리 중단
+		if (!$targetOutput->toBool() || empty($targetOutput->data)) {
+			return new BaseObject(-1, 'msg_invalid_access');
 		}
 
-		$args2 = new stdClass();
-		$args2->member_srl = $member_srl;
-		$args2->sticker_srl = $sticker_srl;
-		$args2->list_order = $list_order;
-		$args2->swap_list_order = $swap_list_order;
-		$output = executeQuery('sticker.updateStickerBuyOrder', $args2);
+		// 대상 스티커 데이터 추출
+		// executeQuery 결과가 배열로 반환될 수 있으므로 current()로 첫 번째 요소 추출
+		$targetStickerObj = is_array($targetOutput->data) ? current($targetOutput->data) : $targetOutput->data;
+		
+		$target_sticker_srl = $targetStickerObj->sticker_srl;
+		$target_list_order = $targetStickerObj->list_order;
 
-		$args3 = new stdClass();
-		$args3->member_srl = $member_srl;
-		$args3->sticker_srl = $swap_sticker_srl;
-		$args3->list_order = $swap_list_order;
-		$args3->swap_list_order = $list_order;
-		$output = executeQuery('sticker.updateStickerBuyOrder', $args3);
+		if (!isset($target_sticker_srl) || !isset($target_list_order)) {
+			return new BaseObject(-1, 'msg_exception_process');
+		}
 
+
+		// 5. 순서 맞교환 (Swap) 실행
+		// DB 트랜잭션을 걸어주면 더 안전하지만, 여기선 기존 로직대로 개별 업데이트 수행
+
+		// 5-1. 내 스티커의 순서를 대상 스티커의 순서값으로 변경
+		$updateMyArgs = new stdClass();
+		$updateMyArgs->member_srl = $member_srl;
+		$updateMyArgs->sticker_srl = $sticker_srl;
+		$updateMyArgs->list_order = $current_list_order; // WHERE 조건 (현재 값)
+		$updateMyArgs->swap_list_order = $target_list_order; // SET 값 (바꿀 값)
+		$output = executeQuery('sticker.updateStickerBuyOrder', $updateMyArgs);
+		if (!$output->toBool()) return $output; // 에러 체크 추가 권장
+
+		// 5-2. 대상 스티커의 순서를 내 스티커의 순서값으로 변경
+		$updateTargetArgs = new stdClass();
+		$updateTargetArgs->member_srl = $member_srl;
+		$updateTargetArgs->sticker_srl = $target_sticker_srl;
+		$updateTargetArgs->list_order = $target_list_order; // WHERE 조건
+		$updateTargetArgs->swap_list_order = $current_list_order; // SET 값
+		$output = executeQuery('sticker.updateStickerBuyOrder', $updateTargetArgs);
+		if (!$output->toBool()) return $output; // 에러 체크 추가 권장
+
+		// 6. 성공 메시지 반환
 		$this->setMessage('success_moved');
 	}
 

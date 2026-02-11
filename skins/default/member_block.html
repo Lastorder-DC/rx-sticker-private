@@ -6,6 +6,10 @@ function deleteBlockSticker(sticker_srl){
 		sticker_srl: sticker_srl
 	};
 
+	if(!confirm('팬비닛콘 차단을 해제하시겠습니까?')){
+		return;
+	}
+
 	exec_json('sticker.procStickerBlockDelete', params, function(response){
 		if(response.error){
 			alert(response.message);

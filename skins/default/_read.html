@@ -1,3 +1,27 @@
+<script>
+function toggleBlockSticker(sticker_srl, is_blocked){
+	if(!sticker_srl){
+		return;
+	}
+
+	var proc = is_blocked ? 'sticker.procStickerBlockDelete' : 'sticker.procStickerBlockInsert';
+	var message = is_blocked ? '팬비닛콘 차단을 해제하시겠습니까?' : '팬비닛콘을 차단하시겠습니까?';
+
+	if(!confirm(message)){
+		return;
+	}
+
+	exec_json(proc, { sticker_srl: sticker_srl }, function(response){
+		if(response.error){
+			alert(response.message);
+			return;
+		}
+
+		window.location.reload();
+	});
+}
+</script>
+
 <div class="bd hover_effect small_lst_btn1" data-default_style="list" data-bdfilestype="" data-bdimgopt="Y">
 	<div class="rd rd_nav_style2 clear" style="padding:;" data-docsrl="848643">
 
@@ -148,6 +172,9 @@
 				</block>
 				<span class="throw_btn" cond="$is_bougth">
 					<i class="fa fa-trash"></i> 버리기
+				</span>
+				<span class="check_btn" cond="$logged_info" onclick="toggleBlockSticker('{$sticker->sticker_srl}', {$is_blocked ? 'true' : 'false'});">
+					{$is_blocked ? '차단 해제' : '차단'}
 				</span>
 			</div>
 		</div>

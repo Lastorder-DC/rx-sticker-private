@@ -16,7 +16,7 @@
 	</columns>
 	<conditions>
 		<condition operation="equal" column="sticker_buy.member_srl" var="member_srl" />
-		<condition operation="equal" column="sticker.sticker_srl" var="sticker_buy.sticker_srl" pipe="and" />
+		<condition operation="equal" column="sticker.sticker_srl" default="sticker_buy.sticker_srl" pipe="and" />
 		<group pipe="and">
 			<condition operation="null" column="sticker_buy.expdate" pipe="or" />
 			<condition operation="more" column="sticker_buy.expdate" var="date" pipe="or" />

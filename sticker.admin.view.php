@@ -37,13 +37,6 @@ class stickerAdminView extends sticker
 		$args->list_count = 20;
 		$args->page = Context::get('page') ? Context::get('page') : 1;
 		$output = executeQueryArray('sticker.getStickerAdminList', $args);
-		foreach($output->data as &$value){
-			$args1 = new stdClass();
-			$args1->sticker_srl = $value->sticker_srl;
-			$args1->no = 0;
-			$output1 = executeQuery('sticker.getStickerMainImage', $args1);
-			$value->main_image = $output1->data->url;
-		}
 
 		Context::set('list', $output->data);
 		Context::set('page_navigation', $output->page_navigation);

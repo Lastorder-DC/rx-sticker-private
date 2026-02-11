@@ -926,8 +926,3 @@ div.stk_img_v{
 	border-radius: 2px;
 }
 
-.sticker-block-target{position:relative;display:inline-block}
-.sticker-block-overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(0,0,0,.55);z-index:12}
-.sticker-overlay-btn{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border:0;border-radius:999px;background:rgba(255,255,255,.95);color:#222;cursor:pointer}
-.sticker-overlay-btn:hover{background:#fff}
-.sticker-overlay-btn ion-icon{font-size:18px}

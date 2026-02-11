@@ -89,7 +89,7 @@ class stickerController extends sticker
 			return new BaseObject();
 		}
 
-		$content = $obj->content;
+		$content = $this->_replaceUndefinedStickerSrlInContent($obj->content);
 		$content = preg_replace('/{@sticker:[0-9]+\|[0-9]+}/i', "", $content);
 
 		$obj->content = $content;
@@ -104,7 +104,7 @@ class stickerController extends sticker
 			return new BaseObject();
 		}
 
-		$content = $obj->content;
+		$content = $this->_replaceUndefinedStickerSrlInContent($obj->content);
 		$content = preg_replace('/{@sticker:[0-9]+\|[0-9]+}/i', "", $content);
 
 		$obj->content = $content;
@@ -122,6 +122,7 @@ class stickerController extends sticker
 		$logged_info = Context::get('logged_info');
 
 		$member_srl = $logged_info ? $logged_info->member_srl : 0;
+		$obj->content = $this->_replaceUndefinedStickerSrlInContent($obj->content);
 		$content = html_entity_decode($obj->content);
 		preg_match('/{@sticker:([0-9]+)\|([0-9]+)}/i', $content, $match);
 		if(!empty($match)){
@@ -179,6 +180,7 @@ class stickerController extends sticker
 		}
 
 		$member_srl = $logged_info ? $logged_info->member_srl : 0;
+		$obj->content = $this->_replaceUndefinedStickerSrlInContent($obj->content);
 		$content = html_entity_decode($obj->content);
 		preg_match('/{@sticker:([0-9]+)\|([0-9]+)}/i', $content, $match);
 		if(!empty($match)){
@@ -573,6 +575,62 @@ class stickerController extends sticker
 		$this->add('sticker_srl', $sticker_srl);
 	}
 
+
+
+	function _replaceUndefinedStickerSrlInContent($content){
+		if(!$content){
+			return $content;
+		}
+
+		return preg_replace_callback('/<a\b[^>]*href=("|\')(\/?\?mid=sticker(?:&amp;|&)sticker_srl=undefined)\1[^>]*>.*?<\/a>/is', array($this, '_replaceUndefinedStickerSrlAnchorCallback'), $content);
+	}
+
+	function _replaceUndefinedStickerSrlAnchorCallback($matches){
+		if(!preg_match('/<img\b[^>]*src=("|\')([^"\']+)\1/i', $matches[0], $img_match)){
+			return $matches[0];
+		}
+
+		$sticker_src = $this->_extractStickerSrcFromImgTag($img_match[2]);
+		if(!$sticker_src){
+			return $matches[0];
+		}
+
+		$sticker_srl = $this->_getStickerSrlByStickerSrc($sticker_src);
+		if(!$sticker_srl){
+			return $matches[0];
+		}
+
+		return preg_replace('/sticker_srl=undefined/i', 'sticker_srl='.$sticker_srl, $matches[0], 1);
+	}
+
+	function _extractStickerSrcFromImgTag($img_src){
+		if(!$img_src){
+			return '';
+		}
+
+		$img_src = preg_replace('/[#?].*$/', '', $img_src);
+		$files_pos = strpos($img_src, '/files');
+		if($files_pos === false){
+			return '';
+		}
+
+		return '.'.substr($img_src, $files_pos);
+	}
+
+	function _getStickerSrlByStickerSrc($sticker_src){
+		if(!$sticker_src){
+			return 0;
+		}
+
+		$args = new stdClass();
+		$args->sticker_src = $sticker_src;
+		$output = executeQuery('sticker.getStickerSrlByStickerFile', $args);
+		if(!$output->toBool() || empty($output->data) || empty($output->data->sticker_srl)){
+			return 0;
+		}
+
+		return $output->data->sticker_srl;
+	}
 	function procStickerBlockInsert(){
 		$logged_info = Context::get('logged_info');
 		if(!$logged_info){

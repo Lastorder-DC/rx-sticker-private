@@ -555,6 +555,24 @@ class stickerController extends sticker
 
 	}
 
+	function procStickerGetStickerSrl() {
+		$sticker_src = Context::get('sticker_src');
+
+		$args = new stdClass();
+		$args->sticker_src = $sticker_src;
+		$output = executeQuery('sticker.getStickerSrlByStickerFile', $args);
+		if(!$output->toBool()){
+			return $output;
+		}
+
+		if(empty($output->data)){
+			return new BaseObject(-1,'invalid sticker srl');
+		}
+
+		$sticker_srl = $output->data->sticker_srl;
+		$this->add('sticker_srl', $sticker_srl);
+	}
+
 
 	function procStickerInsert(){
 		if( !(extension_loaded('gd') && function_exists('gd_info')) ){

@@ -3,13 +3,20 @@
 	var stickerSrlPattern = /(?:^|[?&])sticker_srl=([^&#]+)/;
 
 	function getStickerInfoFromLink($link){
-		var href = $link.attr('href') || '';
-		if(!href || !stickerLinkPattern.test(href) || !stickerSrlPattern.test(href)){
+		var rawHref = $link.attr('href') || '';
+		if(!rawHref) return null;
+
+		var href = rawHref.replace(/&amp;/g, '&');
+		if(!stickerLinkPattern.test(href) || !stickerSrlPattern.test(href)){
 			return null;
 		}
 
-		var stickerSrl = decodeURIComponent(href.replace(stickerSrlPattern, '$1'));
-		if(!stickerSrl){
+		var matches = href.match(stickerSrlPattern);
+		var stickerSrl = (matches && matches[1]) ? matches[1] : null;
+
+		if(stickerSrl) {
+			stickerSrl = decodeURIComponent(stickerSrl);
+		} else {
 			return null;
 		}
 
@@ -41,20 +48,72 @@
 		$blockButton.on('click', function(event){
 			event.preventDefault();
 			event.stopPropagation();
-			// 전역 함수 blockSticker 호출
-			if(typeof window.blockSticker === 'function'){
-				window.blockSticker(stickerInfo.stickerSrl);
+
+			if (stickerInfo.stickerSrl === 'undefined' || !stickerInfo.stickerSrl) {
+				var imgSrc = $img[0].src;
+				var targetUrl = imgSrc;
+
+				if (imgSrc.indexOf('/files') !== -1) {
+					targetUrl = '.' + imgSrc.substring(imgSrc.indexOf('/files'));
+				}
+
+				var params = {
+					'sticker_src': targetUrl
+				};
+
+				exec_json('sticker.procStickerGetStickerSrl', params, function (response) {
+					if(response.error) {
+						alert(response.message);
+						return;
+					}
+
+					if(response.sticker_srl) {
+						stickerInfo.stickerSrl = response.sticker_srl;
+						window.blockSticker(stickerInfo.stickerSrl);
+					}
+				});
+
 			} else {
-				console.log('blockSticker function is not defined.');
+				window.blockSticker(stickerInfo.stickerSrl);
 			}
+
 			closeStickerBlockOverlay();
 		});
 
 		$moveButton.on('click', function(event){
 			event.preventDefault();
 			event.stopPropagation();
-			window.open(stickerInfo.href, '_blank');
-			closeStickerBlockOverlay();
+
+			if (stickerInfo.stickerSrl === 'undefined' || !stickerInfo.stickerSrl) {
+				var imgSrc = $img[0].src;
+				var targetUrl = imgSrc;
+
+				if (imgSrc.indexOf('/files') !== -1) {
+					targetUrl = '.' + imgSrc.substring(imgSrc.indexOf('/files'));
+				}
+
+				var params = {
+					'sticker_src': targetUrl
+				};
+
+				exec_json('sticker.procStickerGetStickerSrl', params, function (response) {
+					if(response.error) {
+						alert(response.message);
+						return;
+					}
+
+					if(response.sticker_srl) {
+						var newHref = default_url.setQuery('mid', 'sticker').setQuery('sticker_srl', response.sticker_srl);
+						window.open(newHref, '_blank');
+					}
+					
+					closeStickerBlockOverlay();
+				});
+
+			} else {
+				window.open(stickerInfo.href, '_blank');
+				closeStickerBlockOverlay();
+			}
 		});
 
 		$overlay.append($blockButton).append($moveButton);
@@ -86,7 +145,6 @@
 
 })(jQuery);
 
-// blockSticker 함수 정의 (기존 코드 하단에 있던 내용)
 if(typeof window.blockSticker !== 'function'){
 	window.blockSticker = function(sticker_srl){
 		console.log('blockSticker called:', sticker_srl);

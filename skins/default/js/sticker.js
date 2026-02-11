@@ -37,17 +37,28 @@
 			return;
 		}
 
+		var blockedImagePath = '/modules/sticker/skins/default/blocked.png';
+		var imageSrc = $img.attr('src') || '';
+		var isBlockedImage = imageSrc === blockedImagePath || imageSrc.indexOf(blockedImagePath + '?') !== -1 || imageSrc.indexOf(blockedImagePath) !== -1;
+
 		closeStickerBlockOverlay();
 
 		$link.addClass('sticker-block-target');
 
 		var $overlay = jQuery('<div class="sticker-block-overlay"></div>');
-		var $blockButton = jQuery('<button type="button" class="sticker-overlay-btn sticker-overlay-btn-block" title="차단"><ion-icon name="ban-outline"></ion-icon></button>');
+		var blockButtonTitle = isBlockedImage ? '차단 해제' : '차단';
+		var $blockButton = jQuery('<button type="button" class="sticker-overlay-btn sticker-overlay-btn-block" title="' + blockButtonTitle + '"><ion-icon name="ban-outline"></ion-icon></button>');
 		var $moveButton = jQuery('<button type="button" class="sticker-overlay-btn sticker-overlay-btn-move" title="이동"><ion-icon name="link-outline"></ion-icon></button>');
 
 		$blockButton.on('click', function(event){
 			event.preventDefault();
 			event.stopPropagation();
+
+			if(isBlockedImage){
+				window.unblockSticker(stickerInfo.stickerSrl);
+				closeStickerBlockOverlay();
+				return;
+			}
 
 			if (stickerInfo.stickerSrl === 'undefined' || !stickerInfo.stickerSrl) {
 				var imgSrc = $img[0].src;
@@ -156,6 +167,27 @@ if(typeof window.blockSticker !== 'function'){
 		}
 
 		exec_json('sticker.procStickerBlockInsert', { sticker_srl: sticker_srl }, function(response){
+			if(response.error){
+				alert(response.message);
+				return;
+			}
+
+			alert(response.message);
+		});
+	};
+}
+
+if(typeof window.unblockSticker !== 'function'){
+	window.unblockSticker = function(sticker_srl){
+		if(!sticker_srl){
+			return;
+		}
+
+		if(!confirm('팬비닛콘 차단을 해제하시겠습니까?')){
+			return;
+		}
+
+		exec_json('sticker.procStickerBlockDelete', { sticker_srl: sticker_srl }, function(response){
 			if(response.error){
 				alert(response.message);
 				return;

@@ -862,6 +862,10 @@ div.stk_img_v > img {border-radius: 3px;}
 	cursor: pointer;
 }
 
+.sticker_buy>span+span {
+	margin-left: 8px;
+}
+
 .sticker_buy>.buy_btn {
 	background-color: #2D99E1;
 	border-radius: 3px;
@@ -888,6 +892,11 @@ div.stk_img_v > img {border-radius: 3px;}
 
 .sticker_buy>.check_btn{
 	background-color: #857EEB;
+}
+
+.sticker_buy>.block_btn{
+	background-color: #857EEB;
+	border-radius: 3px;
 }
 
 .sticker_buy>.stop_btn{

@@ -56,7 +56,7 @@
 		$link.append($overlay);
 	}
 
-	$(document).on("click", ".sticker_buy>span", function (e) {
+	$(document).on("click", ".sticker_buy>span:not(.block_btn)", function (e) {
 		var $this = $(this);
 		var sticker_srl = $('.xe_content[class*=sticker_]').attr('class').replace(/.*sticker_([0-9]+).*/, '$1');
 		var not_logged_in = $this.parent().hasClass('not_logged_in');

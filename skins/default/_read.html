@@ -173,7 +173,7 @@ function toggleBlockSticker(sticker_srl, is_blocked){
 				<span class="throw_btn" cond="$is_bougth">
 					<i class="fa fa-trash"></i> 버리기
 				</span>
-				<span class="check_btn" cond="$logged_info" onclick="toggleBlockSticker('{$sticker->sticker_srl}', {$is_blocked ? 'true' : 'false'});">
+				<span class="block_btn" cond="$logged_info" onclick="toggleBlockSticker('{$sticker->sticker_srl}', {$is_blocked ? 'true' : 'false'});">
 					{$is_blocked ? '차단 해제' : '차단'}
 				</span>
 			</div>

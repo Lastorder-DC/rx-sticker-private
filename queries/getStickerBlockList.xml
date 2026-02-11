@@ -15,7 +15,7 @@
 		<column name="sticker_files.url" alias="main_image" />
 	</columns>
 	<conditions>
-		<condition operation="equal" column="member_srl" var="member_srl" notnull="notnull" filter="number" />
+		<condition operation="equal" column="sticker_block.member_srl" var="member_srl" notnull="notnull" filter="number" />
 		<condition operation="equal" column="sticker.sticker_srl" default="sticker_block.sticker_srl" pipe="and" />
 	</conditions>
 	<navigation>

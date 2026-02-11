@@ -88,10 +88,13 @@ class stickerView extends sticker
 
 		$oStickerModel = getModel('sticker');
 		$is_bougth = false;
+		$is_blocked = false;
 
 		$logged_info = Context::get('logged_info');
 		if($logged_info){
 			$is_bougth = $oStickerModel->checkBuySticker($logged_info->member_srl, $sticker_srl);
+			$oStickerController = getController('sticker');
+			$is_blocked = $oStickerController->_isBlockedSticker($logged_info->member_srl, $sticker_srl);
 		}
 
 		$title = !empty($output->data->title) ? $output->data->title : "Untitled";
@@ -103,6 +106,7 @@ class stickerView extends sticker
 		Context::set('date', date('YmdHis'));
 		Context::set('grant', $this->grant);
 		Context::set('is_bougth', $is_bougth);
+		Context::set('is_blocked', $is_blocked);
 		Context::set('sticker', $output->data);
 		Context::set('sticker_file', $output1->data);
 	}

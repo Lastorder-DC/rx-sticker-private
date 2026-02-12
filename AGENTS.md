@@ -29,8 +29,8 @@ modules/<module_name>/
     info.xml
     module.xml
   lang/
-    en.lang.php
-    ko.lang.php
+    en.php
+    ko.php
     ...
   queries/
     *.xml
@@ -119,7 +119,7 @@ Compatibility caution:
 
 ## 8) Localization and UX
 
-- Externalize UI strings to `lang/*.lang.php`.
+- Externalize UI strings to `lang/*.php`.
 - Provide at least Korean and English strings for user-facing/admin-facing text when possible.
 - Keep admin menus and labels concise and consistent.
 
@@ -137,11 +137,10 @@ Compatibility caution:
 ## 10) What an AI Agent Should Do Before Editing
 
 1. Read this file.
-2. Inspect an existing core module with similar behavior (`modules/board`, `modules/page`, etc.).
-3. Confirm required actions/routes/permissions in `conf/module.xml`.
-4. Add/update language keys.
-5. Run lint/tests available in the project.
-6. Summarize all changed files and the rationale.
+2. Confirm required actions/routes/permissions in `conf/module.xml`.
+3. Add/update language keys.
+4. Run lint/tests available in the project.
+5. Summarize all changed files and the rationale.
 
 ---
 
@@ -150,7 +149,7 @@ Compatibility caution:
 - Do not modify Rhymix core files unless explicitly requested.
 - Do not bypass permission checks for convenience.
 - Do not hardcode untranslated strings in templates/controllers.
-- Do not mix unrelated cleanup with functional changes.
+- Do not mix unrelated cleanup with functional changes unless instructed
 
 ---
 

@@ -211,3 +211,4 @@ $lang->stkr_confirm_block_sticker = 'Do you want to block this Fanbeennitcon sti
 $lang->stkr_uploaded_count_suffix = ' uploaded';
 $lang->stkr_webmaster = 'Webmaster';
 $lang->cmd_select_file = 'Select file';
+$lang->stkr_seller = 'Seller';

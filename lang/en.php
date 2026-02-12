@@ -210,3 +210,4 @@ $lang->stkr_confirm_unblock_sticker = 'Do you want to unblock this Fanbeennitcon
 $lang->stkr_confirm_block_sticker = 'Do you want to block this Fanbeennitcon sticker?';
 $lang->stkr_uploaded_count_suffix = ' uploaded';
 $lang->stkr_webmaster = 'Webmaster';
+$lang->cmd_select_file = 'Select file';

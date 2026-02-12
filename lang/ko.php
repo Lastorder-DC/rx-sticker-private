@@ -210,3 +210,4 @@ $lang->stkr_confirm_unblock_sticker = '팬비닛콘 차단을 해제하시겠습
 $lang->stkr_confirm_block_sticker = '팬비닛콘을 차단하시겠습니까?';
 $lang->stkr_uploaded_count_suffix = '개 업로드됨';
 $lang->stkr_webmaster = '웹마스터';
+$lang->cmd_select_file = '파일 선택';

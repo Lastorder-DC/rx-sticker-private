@@ -134,7 +134,7 @@
 			<label for="sale_end_date" class="x_control-label">{$lang->stkr_sale_end_date}</label>
 			<div class="x_controls">
 				<label class="x_inline" for="sale_end_date">
-				<input type="number" value="{$config->sale_end_date}" name="sale_end_date" id="sale_end_date" style="width:50px;"><span style="margin:0 0 0 15px">일  </span></label>
+				<input type="number" value="{$config->sale_end_date}" name="sale_end_date" id="sale_end_date" style="width:50px;"><span style="margin:0 0 0 15px">{$lang->stkr_day_unit}</span></label>
 				<a href="#sale_end_date_help" class="x_icon-question-sign" data-toggle="#sale_end_date_help">{$lang->help}</a>
 				<p id="sale_end_date_help" class="x_help-block" hidden="hidden">{$lang->cmd_sale_end_date}</p>
 			</div>
@@ -144,7 +144,7 @@
 			<label for="use_date" class="x_control-label">{$lang->stkr_use_date}</label>
 			<div class="x_controls">
 				<label class="x_inline" for="use_date">
-				<input type="number" value="{$config->use_date}" name="use_date" id="use_date" style="width:50px;"><span style="margin:0 0 0 15px">시간  </span></label>
+				<input type="number" value="{$config->use_date}" name="use_date" id="use_date" style="width:50px;"><span style="margin:0 0 0 15px">{$lang->stkr_hour_unit}</span></label>
 				<a href="#use_date_help" class="x_icon-question-sign" data-toggle="#use_date_help">{$lang->help}</a>
 				<p id="use_date_help" class="x_help-block" hidden="hidden">{$lang->cmd_use_date}</p>
 			</div>
@@ -154,7 +154,7 @@
 			<label for="sale_limit" class="x_control-label">{$lang->stkr_sale_limit}</label>
 			<div class="x_controls">
 				<label class="x_inline" for="sale_limit">
-				<input type="number" value="{$config->sale_limit}" name="sale_limit" id="sale_limit" style="width:50px;"><span style="margin:0 0 0 15px">개 </span></label>
+				<input type="number" value="{$config->sale_limit}" name="sale_limit" id="sale_limit" style="width:50px;"><span style="margin:0 0 0 15px">{$lang->stkr_count_unit}</span></label>
 				<a href="#sale_limit_help" class="x_icon-question-sign" data-toggle="#sale_limit_help">{$lang->help}</a>
 				<p id="sale_limit_help" class="x_help-block" hidden="hidden">{$lang->cmd_sale_limit}</p>
 			</div>
@@ -207,7 +207,7 @@
 			<label for="limit_modify_buy" class="x_control-label">{$lang->stkr_for_bought_count}</label>
 			<div class="x_controls">
 				<label class="x_inline" for="limit_modify_buy">
-				<input type="number" value="{$config->limit_modify_buy}" name="limit_modify_buy" id="limit_modify_buy" style="width:50px;"><span style="margin:0 0 0 5px">개 이상시 수정금지 </span></label>
+				<input type="number" value="{$config->limit_modify_buy}" name="limit_modify_buy" id="limit_modify_buy" style="width:50px;"><span style="margin:0 0 0 5px">{$lang->stkr_count_modify_limit_hint}</span></label>
 				<a href="#cmd_limit_modify_buy_help" class="x_icon-question-sign" data-toggle="#cmd_limit_modify_buy_help">{$lang->help}</a>
 				<p id="cmd_limit_modify_buy_help" class="x_help-block" hidden="hidden">{$lang->cmd_limit_modify_buy}</p>
 			</div>
@@ -262,7 +262,7 @@
 			<label for="limit_delete_buy" class="x_control-label">{$lang->stkr_for_bought_count}</label>
 			<div class="x_controls">
 				<label class="x_inline" for="limit_delete_buy">
-				<input type="number" value="{$config->limit_delete_buy}" name="limit_delete_buy" id="limit_delete_buy" style="width:50px;"><span style="margin:0 0 0 5px">개 이상시 삭제금지 </span></label>
+				<input type="number" value="{$config->limit_delete_buy}" name="limit_delete_buy" id="limit_delete_buy" style="width:50px;"><span style="margin:0 0 0 5px">{$lang->stkr_count_delete_limit_hint}</span></label>
 				<a href="#cmd_limit_delete_buy_help" class="x_icon-question-sign" data-toggle="#cmd_limit_delete_buy_help">{$lang->help}</a>
 				<p id="cmd_limit_delete_buy_help" class="x_help-block" hidden="hidden">{$lang->cmd_limit_delete_buy}</p>
 			</div>
@@ -450,43 +450,43 @@ jQuery(function($){
 		var cmt_max_sticker_count = $("#cmt_max_sticker_count").val() || 0;
 
 		if(buy_limit && buy_limit < 0){
-			return alert('스티커 최대 보유 개수 제한 숫자 형식이 올바르지 않습니다.'), false;
+			return alert('{$lang->stkr_alert_invalid_buy_limit}'), false;
 		}
 
 		if(minPoint < 0 || maxPoint < 0){
-			return alert('포인트 판매 범위는 0 이상이어야 합니다.'), false;
+			return alert('{$lang->stkr_alert_point_range_non_negative}'), false;
 		}
 
 		if(parseInt(maxPoint)-parseInt(minPoint) < 0){
-			return alert('포인트 판매 범위 최소값이 최댓값 보다 클 수 없습니다.'), false;
+			return alert('{$lang->stkr_alert_point_range_invalid}'), false;
 		}
 
 		if(maxPx < 40){
-			return alert('이미지 최대 사이즈 값이 너무 작습니다.'), false;
+			return alert('{$lang->stkr_alert_max_image_size_too_small}'), false;
 		}
 
 		if(image_quality > 100 || image_quality < 1){
-			return alert('이미지 품질 값은 1이상 100이하여야 합니다.'), false;
+			return alert('{$lang->stkr_alert_image_quality_invalid}'), false;
 		}
 
 		if(min_uploads < 1 || max_uploads < 1){
-			return alert('스티커 업로드 갯수는 1이상이어야 합니다.'), false;
+			return alert('{$lang->stkr_alert_upload_count_minimum}'), false;
 		}
 
 		if(parseInt(max_uploads)-parseInt(min_uploads) < 0){
-			return alert('스티커 업로드 갯수 범위 최소값이 최댓값 보다 클 수 없습니다.'), false;
+			return alert('{$lang->stkr_alert_upload_range_invalid}'), false;
 		}
 
 		if(image_min_width < 40 || image_min_height < 40){
-			return alert('이미지 최소 크기 값이 너무 작습니다.'), false;
+			return alert('{$lang->stkr_alert_min_image_size_too_small}'), false;
 		}
 
 		if(file_size < 1 || file_size_all < 1){
-			return alert('파일 용량값이 올바르지 않습니다.'), false;
+			return alert('{$lang->stkr_alert_file_size_invalid}'), false;
 		}
 
 		if(cmt_max_sticker_count < 0){
-			return alert('댓글 스티커 등록 제한값이 올바르지 않습니다.'), false;
+			return alert('{$lang->stkr_alert_comment_limit_invalid}'), false;
 		}
 
 	});

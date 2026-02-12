@@ -160,6 +160,8 @@ class stickerAdminController extends sticker
 			return $output;
 		}
 
+		$oStickerModel->clearStickerCache($sticker_srl);
+
 		$this->setMessage('success_saved');
 		$returnUrl = Context::get('success_return_url') ? Context::get('success_return_url') : getNotEncodedUrl('', 'module', 'admin', 'act', 'dispStickerAdminStickerView', 'sticker_srl', $sticker_srl);
 		$this->setRedirectUrl($returnUrl);

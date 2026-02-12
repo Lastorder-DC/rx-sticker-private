@@ -1,5 +1,6 @@
 <?php
 /*! Copyright (C) 2016 BGM STORAGE. All rights reserved. */
+use Rhymix\Framework\Cache;
 /**
  * @class  stickerController
  * @author Huhani (mmia268@gmail.com)
@@ -1242,6 +1243,8 @@ class stickerController extends sticker
 			return $output;
 		}
 
+		Cache::set(sprintf('sticker:item:%d', $sticker_srl), null);
+
 		$args->type = "updateSticker";
 		unset($args->content);
 		$this->insertStickerLog($args);
@@ -1883,6 +1886,7 @@ class stickerController extends sticker
 		$args = new stdClass();
 		$args->sticker_srl = $sticker_srl;
 		$output = executeQuery('sticker.deleteSticker', $args);
+		Cache::set(sprintf('sticker:item:%d', intval($sticker_srl)), null);
 	}
 
 	function _deleteStickerFile($sticker_srl, $file_srl){

@@ -1,5 +1,6 @@
 <?php
 /*! Copyright (C) 2016 BGM STORAGE. All rights reserved. */
+use Rhymix\Framework\Cache;
 /**
  * @class  stickerModel
  * @author Huhani (mmia268@gmail.com)
@@ -186,10 +187,35 @@ class stickerModel extends sticker
 	}
 
 	function getSticker($sticker_srl){
+		$sticker_srl = intval($sticker_srl);
+		if($sticker_srl < 1){
+			return false;
+		}
+
+		$cache_key = sprintf('sticker:item:%d', $sticker_srl);
+		$cached_sticker = Cache::get($cache_key);
+		if($cached_sticker !== null){
+			return $cached_sticker;
+		}
+
 		$args = new stdClass();
 		$args->sticker_srl = $sticker_srl;
 		$output = executeQuery('sticker.getSticker', $args);
-		return !empty($output->data) ? $output->data : false;
+
+		$sticker = !empty($output->data) ? $output->data : false;
+		Cache::set($cache_key, $sticker);
+
+		return $sticker;
+	}
+
+	function clearStickerCache($sticker_srl){
+		$sticker_srl = intval($sticker_srl);
+		if($sticker_srl < 1){
+			return;
+		}
+
+		$cache_key = sprintf('sticker:item:%d', $sticker_srl);
+		Cache::set($cache_key, null);
 	}
 
 	function getDefaultSticker(){

@@ -12,13 +12,13 @@
 
 		<caption>
 
-			<a href="{getUrl('', 'module', 'admin', 'act', 'dispStickerAdminLogList')}" class="active"|cond="$search_keyword == ''">전체<block cond="$search_keyword == ''">({number_format($page_navigation->total_count)})</block></a>
+			<a href="{getUrl('', 'module', 'admin', 'act', 'dispStickerAdminLogList')}" class="active"|cond="$search_keyword == ''">{$lang->stkr_log_all}<block cond="$search_keyword == ''">({number_format($page_navigation->total_count)})</block></a>
 			<i>|</i>
 
-			<a href="{getUrl('search_target', 'type', 'search_keyword', 'buySticker')}" class="active"|cond="$search_target == 'type' && $search_keyword == 'buySticker'">스티커 구매<block cond="$search_target == 'type' && $search_keyword == 'buySticker'">({number_format($page_navigation->total_count)})</block></a>
+			<a href="{getUrl('search_target', 'type', 'search_keyword', 'buySticker')}" class="active"|cond="$search_target == 'type' && $search_keyword == 'buySticker'">{$lang->stkr_log_type_buy_sticker}<block cond="$search_target == 'type' && $search_keyword == 'buySticker'">({number_format($page_navigation->total_count)})</block></a>
 			<i>|</i>
 
-			<a href="{getUrl('search_target', 'type', 'search_keyword', 'insertSticker')}" class="active"|cond="$search_target == 'type' && $search_keyword == 'insertSticker'">스티커 등록<block cond="$search_target == 'type' && $search_keyword == 'insertSticker'">({number_format($page_navigation->total_count)})</block></a>
+			<a href="{getUrl('search_target', 'type', 'search_keyword', 'insertSticker')}" class="active"|cond="$search_target == 'type' && $search_keyword == 'insertSticker'">{$lang->stkr_log_type_insert_sticker}<block cond="$search_target == 'type' && $search_keyword == 'insertSticker'">({number_format($page_navigation->total_count)})</block></a>
 
 		</caption>
 
@@ -28,8 +28,8 @@
 			<tr>
 				<th scope="col" class="title">{$lang->title}</th>
 				<th scope="col" class="nowr">{$lang->nick_name}</th>
-				<th scope="col" class="nowr">유형</th>
-				<th scope="col" class="nowr">등록일</th>
+				<th scope="col" class="nowr">{$lang->stkr_log_type}</th>
+				<th scope="col" class="nowr">{$lang->regdate}</th>
 				<th scope="col" class="nowr">{$lang->ipaddress}</th>
 			</tr>
 
@@ -42,44 +42,44 @@
 					<!--@if(trim($list->title))-->
 					<img src="{$list->main_image}" style="width:50px; height:50px; object-fit:cover; margin:0 5px 0 0;">
 					<a href="{getUrl('idx', $list->idx, 'act', 'dispStickerAdminLogInfo')}">{htmlspecialchars(cut_str($list->title, 25))}</a>
-					<!--@else--><a href="{getUrl('idx', $list->idx, 'act', 'dispStickerAdminLogInfo')}">삭제된 스티커입니다.</a>
+					<!--@else--><a href="{getUrl('idx', $list->idx, 'act', 'dispStickerAdminLogInfo')}">{$lang->stkr_deleted_sticker_text}</a>
 					<!--@end--></td>
 				<td class="nowr">
 					<!--@if($list->member_srl)-->
 						<a href="#popup_menu_area" class="member_{$list->member_srl}">{$list->nick_name}</a>
 					<!--@else-->
-						탈퇴한 회원
+						{$lang->stkr_withdrawn_member}
 					<!--@end-->
 				</td>
 				<td class="nowr">
 					<!--@if($list->type == "insertSticker")-->
-						스티커 등록
+						{$lang->stkr_log_type_insert_sticker}
 					<!--@elseif($list->type == "updateSticker")-->
-						스티커 수정
+						{$lang->stkr_log_type_update_sticker}
 					<!--@elseif($list->type == "deleteSticker")-->
-						스티커 삭제
+						{$lang->stkr_log_type_delete_sticker}
 					<!--@elseif($list->type == "insertComment")-->
-						스티커 댓글 등록
+						{$lang->stkr_log_type_insert_comment}
 					<!--@elseif($list->type == "updateComment")-->
-						스티커 댓글 수정
+						{$lang->stkr_log_type_update_comment}
 					<!--@elseif($list->type == "deleteComment")-->
-						스티커 댓글 삭제
+						{$lang->stkr_log_type_delete_comment}
 					<!--@elseif($list->type == "buySticker")-->
-						스티커 구매
+						{$lang->stkr_log_type_buy_sticker}
 					<!--@elseif($list->type == "deleteBuySticker")-->
-						구매 스티커 삭제
+						{$lang->stkr_log_type_delete_buy_sticker}
 					<!--@elseif($list->type == "insertStickerAdmin")-->
-						관리자 스티커 등록
+						{$lang->stkr_log_type_insert_sticker_admin}
 					<!--@elseif($list->type == "updateStickerAdmin")-->
-						관리자 스티커 수정
+						{$lang->stkr_log_type_update_sticker_admin}
 					<!--@elseif($list->type == "deleteStickerAdmin")-->
-						관리자 스티커 삭제
+						{$lang->stkr_log_type_delete_sticker_admin}
 					<!--@elseif($list->type == "buyStickerAdmin")-->
-						관리자 스티커 구매
+						{$lang->stkr_log_type_buy_sticker_admin}
 					<!--@elseif($list->type == "deleteBuyStickerAdmin")-->
-						관리자 구매 스티커 삭제
+						{$lang->stkr_log_type_delete_buy_sticker_admin}
 					<!--@else-->
-						예외
+						{$lang->stkr_log_type_exception}
 					<!--@end-->
 				</td>
 				<td class="nowr">{zdate($list->regdate,"Y.m.d H:i")}</td>
@@ -137,14 +137,14 @@
 	<input type="hidden" name="module" value="{$module}">
 	<input type="hidden" name="act" value="procStickerAdminLogClear">
 	<select name="select_date" style="width:170px">
-		<option value="0">모든 기록</option>
-		<option value="1" selected="selected">1일 이상 지난 기록</option>
-		<option value="3">3일 이상 지난 기록</option>
-		<option value="7">7일 이상 지난 기록</option>
-		<option value="15">15일 이상 지난 기록</option>
-		<option value="30">30일 이상 지난 기록</option>
+		<option value="0">{$lang->stkr_log_all_records}</option>
+		<option value="1" selected="selected">{$lang->stkr_log_records_older_than_1_day}</option>
+		<option value="3">{$lang->stkr_log_records_older_than_3_days}</option>
+		<option value="7">{$lang->stkr_log_records_older_than_7_days}</option>
+		<option value="15">{$lang->stkr_log_records_older_than_15_days}</option>
+		<option value="30">{$lang->stkr_log_records_older_than_30_days}</option>
 	</select>
-	<button class="x_btn" type="submit">삭제</button>
+	<button class="x_btn" type="submit">{$lang->cmd_delete}</button>
 </form>
 
 
@@ -154,11 +154,11 @@
 	<input type="hidden" name="act" value="{$act}" />
 	<input type="hidden" name="error_return_url" value="" />
 	<select name="search_target" title="{$lang->search_target}" style="margin-right:4px">
-		<option value="sticker_srl" selected="selected"|cond="$search_target == 'sticker_srl'">스티커 번호</option>
-		<option value="member_srl" selected="selected"|cond="$search_target == 'member_srl'">회원 번호</option>
-		<option value="type" selected="selected"|cond="$search_target == 'type'">유형</option>
-		<option value="ipaddress" selected="selected"|cond="$search_target == 'ipaddress'">IP주소</option>
-		<option value="regdate" selected="selected"|cond="$search_target == 'regdate'">등록일</option>
+		<option value="sticker_srl" selected="selected"|cond="$search_target == 'sticker_srl'">{$lang->stkr_log_sticker_srl}</option>
+		<option value="member_srl" selected="selected"|cond="$search_target == 'member_srl'">{$lang->member_srl}</option>
+		<option value="type" selected="selected"|cond="$search_target == 'type'">{$lang->stkr_log_type}</option>
+		<option value="ipaddress" selected="selected"|cond="$search_target == 'ipaddress'">{$lang->stkr_ipaddress_no_space}</option>
+		<option value="regdate" selected="selected"|cond="$search_target == 'regdate'">{$lang->regdate}</option>
 	</select>
 	<input type="search" name="search_keyword" value="{htmlspecialchars($search_keyword, ENT_COMPAT | ENT_HTML401, 'UTF-8', false)}" title="{$lang->cmd_search}" />
 	<button type="submit" class="x_btn x_btn-inverse">{$lang->cmd_search}</button>

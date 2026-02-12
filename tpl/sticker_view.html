@@ -36,7 +36,7 @@
 	<p>{$XE_VALIDATOR_MESSAGE}</p>
 </div>
 
-<h2>스티커 정보</h2>
+<h2>{$lang->stkr_sticker_info}</h2>
 
 <form action="./" method="post" style="margin:0 0 25px 0;">
 <input type="hidden" name="module" value="{$module}">
@@ -47,86 +47,86 @@
 <table class="x_table x_table-striped x_table-hover" style="margin:0 0 15px 0;">
 <colgroup><col width="120">
 </colgroup><tbody><tr>
-<th scope="col" class="nowr">닉네임</th>
+<th scope="col" class="nowr">{$lang->nick_name}</th>
 <td><a href="#popup_menu_area" class="member_{$oSticker->member_srl}" onclick="return false">{$oSticker->nick_name}</a>
 </td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">스티커 번호</th>
+	<th scope="col" class="nowr">{$lang->stkr_log_sticker_srl}</th>
 	<td><a href="{getUrl('','mid', 'sticker', 'sticker_srl', $oSticker->sticker_srl)}" target="_blank">{$oSticker->sticker_srl}</a></td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">제목</th>
+	<th scope="col" class="nowr">{$lang->title}</th>
 	<td><input type="text" name="title" id="title" value="{$oSticker->title}" style="width:50%;" /></td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">등록일</th>
+	<th scope="col" class="nowr">{$lang->regdate}</th>
 	<td>{zdate($oSticker->regdate, 'Y-m-d H:i:s')}</td>
 </tr>
 <tr cond="$oSticker->last_update && $oSticker->regdate != $oSticker->last_update">
-	<th scope="col" class="nowr">마지막 수정</th>
+	<th scope="col" class="nowr">{$lang->stkr_last_update}</th>
 	<td>{zdate($oSticker->last_update, 'Y-m-d H:i:s')}</td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">IP 주소</th>
+	<th scope="col" class="nowr">{$lang->ipaddress}</th>
 	<td>{$oSticker->ipaddress}</td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">판매 시작일</th>
+	<th scope="col" class="nowr">{$lang->stkr_sale_start_date}</th>
 	<td>
 		<input type="hidden" name="start_date" id="start_date" value="{$oSticker->start_date ? zdate($oSticker->start_date, 'Ymd') : ''}" />
 		<input type="text" readonly placeholder="YYYY-MM-DD" class="inputDate" id="until_s" value="{$oSticker->start_date ? zdate($oSticker->start_date, 'Y-m-d') : ''}" />
-		<input type="button" value="삭제" class="x_btn dateRemover" />
+		<input type="button" value="{$lang->cmd_delete}" class="x_btn dateRemover" />
 
 		<div style="margin: 10px 0 0 0">
 			<label class="x_inline" for="start_hour">
-			<input type="number" value="{$oSticker->start_date ? zdate($oSticker->start_date, 'H') : '0'}" name="start_hour" id="start_hour"> 시</label>
+			<input type="number" value="{$oSticker->start_date ? zdate($oSticker->start_date, 'H') : '0'}" name="start_hour" id="start_hour"> {$lang->stkr_hour}</label>
 
 			<label class="x_inline" for="start_minute">
-			<input type="number" value="{$oSticker->start_date ? zdate($oSticker->start_date, 'i') : '0'}" name="start_minute" id="start_minute"> 분</label>
+			<input type="number" value="{$oSticker->start_date ? zdate($oSticker->start_date, 'i') : '0'}" name="start_minute" id="start_minute"> {$lang->stkr_minute}</label>
 
 			<label class="x_inline" for="start_second">
-			<input type="number" value="{$oSticker->start_date ? zdate($oSticker->start_date, 's') : '0'}" name="start_second" id="start_second"> 초</label>
+			<input type="number" value="{$oSticker->start_date ? zdate($oSticker->start_date, 's') : '0'}" name="start_second" id="start_second"> {$lang->stkr_second}</label>
 		</div>
 		<!--@if($oSticker->start_date)-->
 			{zdate($oSticker->start_date, 'Y-m-d H:i:s')}
 		<!--@else-->
-			시작일이 설정되지 않았습니다.
+			{$lang->stkr_start_date_not_set}
 		<!--@end-->
 	</td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">판매 종료일</th>
+	<th scope="col" class="nowr">{$lang->stkr_sale_end_date_label}</th>
 	<td>
 		<input type="hidden" name="end_date" id="end_date" value="{$oSticker->end_date ? zdate($oSticker->end_date, 'Ymd') : ''}" />
 		<input type="text" readonly placeholder="YYYY-MM-DD" class="inputDate" id="until_e" value="{$oSticker->end_date ? zdate($oSticker->end_date, 'Y-m-d') : ''}" />
-		<input type="button" value="삭제" class="x_btn dateRemover" />
+		<input type="button" value="{$lang->cmd_delete}" class="x_btn dateRemover" />
 
 		<div style="margin: 10px 0 0 0">
 			<label class="x_inline" for="end_hour">
-			<input type="number" value="{$oSticker->end_date ? zdate($oSticker->end_date, 'H') : '23'}" name="end_hour" id="end_hour"> 시</label>
+			<input type="number" value="{$oSticker->end_date ? zdate($oSticker->end_date, 'H') : '23'}" name="end_hour" id="end_hour"> {$lang->stkr_hour}</label>
 
 			<label class="x_inline" for="end_minute">
-			<input type="number" value="{$oSticker->end_date ? zdate($oSticker->end_date, 'i') : '59'}" name="end_minute" id="end_minute"> 분</label>
+			<input type="number" value="{$oSticker->end_date ? zdate($oSticker->end_date, 'i') : '59'}" name="end_minute" id="end_minute"> {$lang->stkr_minute}</label>
 
 			<label class="x_inline" for="end_second">
-			<input type="number" value="{$oSticker->end_date ? zdate($oSticker->end_date, 's') : '59'}" name="end_second" id="end_second"> 초</label>
+			<input type="number" value="{$oSticker->end_date ? zdate($oSticker->end_date, 's') : '59'}" name="end_second" id="end_second"> {$lang->stkr_second}</label>
 		</div>
 		<!--@if($oSticker->end_date)-->
 			{zdate($oSticker->end_date, 'Y-m-d H:i:s')}
 		<!--@else-->
-			종료일이 설정되지 않았습니다.
+			{$lang->stkr_end_date_not_set}
 		<!--@end-->
 	</td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">사용 기간</th>
+	<th scope="col" class="nowr">{$lang->stkr_use_period}</th>
 	<td>
-			<input type="number" value="{$oSticker->exptime ? $oSticker->exptime : '0'}" name="exptime" id="exptime" style="width:70px;"> 시간 <span>(0: 무기한)</span>
+			<input type="number" value="{$oSticker->exptime ? $oSticker->exptime : '0'}" name="exptime" id="exptime" style="width:70px;"> {$lang->stkr_hour} <span>{$lang->stkr_unlimited_hint}</span>
 	</td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">가격</th>
+	<th scope="col" class="nowr">{$lang->price}</th>
 	<td>
 		<!--@if($oSticker->price === 0)-->
 			<input type="number" value="{$oSticker->price}" name="price" id="price" style="width:70px;">
@@ -137,60 +137,60 @@
 	</td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">구매수/최대 판매수</th>
+	<th scope="col" class="nowr">{$lang->stkr_buy_count_and_limit}</th>
 	<td>
 		<input type="number" value="{$oSticker->bought_count}" name="bought_count" id="bought_count" style="width:70px;">	
 		<label class="x_inline" for="bought_count_e" style="margin: 0 4px 0 4px;">
-			수정
+			{$lang->cmd_modify}
 			<input type="checkbox" value="Y" id="bought_count_e" name="bought_count_e">
 		</label>
 		<span> / </span>
-		<input type="number" value="{$oSticker->buy_limit}" name="buy_limit" id="buy_limit" style="width:70px;"> (0: 무제한)
+		<input type="number" value="{$oSticker->buy_limit}" name="buy_limit" id="buy_limit" style="width:70px;"> {$lang->stkr_unlimited}
 	</td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">사용 횟수</th>
+	<th scope="col" class="nowr">{$lang->stkr_used_count_label}</th>
 	<td>
 		<input type="number" value="{$oSticker->used_count}" name="used_count" id="used_count" style="width:70px;">
 		<label class="x_inline" for="used_count_e" style="margin: 0 0 0 4px;">
-			수정
+			{$lang->cmd_modify}
 			<input type="checkbox" value="Y" id="used_count_e" name="used_count_e">
 		</label>
 	</td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">조회 수</th>
+	<th scope="col" class="nowr">{$lang->readed_count}</th>
 	<td>
 		<input type="number" value="{$oSticker->readed_count}" name="readed_count" id="readed_count" style="width:70px;">
 		<label class="x_inline" for="readed_count_e" style="margin: 0 0 0 4px;">
-			수정
+			{$lang->cmd_modify}
 			<input type="checkbox" value="Y" id="readed_count_e" name="readed_count_e">
 		</label>
 	</td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">태그</th>
-	<td><textarea name="tag" placeholder="250자 이내의 태그를 입력하세요." style="width:50%; height:50px;">{htmlspecialchars($oSticker->tag)}</textarea></td>
+	<th scope="col" class="nowr">{$lang->tag}</th>
+	<td><textarea name="tag" placeholder="{$lang->stkr_tag_placeholder}" style="width:50%; height:50px;">{htmlspecialchars($oSticker->tag)}</textarea></td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">상태</th>
+	<th scope="col" class="nowr">{$lang->status}</th>
 	<td>
 		<label class="x_inline" for="status_public">
-			<input type="radio" id="status_public" name="status" value="PUBLIC" checked="checked"|cond="$oSticker->status == 'PUBLIC'"> 공개
+			<input type="radio" id="status_public" name="status" value="PUBLIC" checked="checked"|cond="$oSticker->status == 'PUBLIC'" > {$lang->stkr_status_public}
 		</label>
 		<label class="x_inline" for="status_check">
-			<input type="radio" id="status_check" name="status" value="CHECK" checked="checked"|cond="$oSticker->status == 'CHECK'"> 검토
+			<input type="radio" id="status_check" name="status" value="CHECK" checked="checked"|cond="$oSticker->status == 'CHECK'" > {$lang->stkr_status_check}
 		</label>
 		<label class="x_inline" for="status_pause">
-			<input type="radio" id="status_pause" name="status" value="PAUSE" checked="checked"|cond="$oSticker->status == 'PAUSE'"> 판매 중단
+			<input type="radio" id="status_pause" name="status" value="PAUSE" checked="checked"|cond="$oSticker->status == 'PAUSE'" > {$lang->stkr_status_pause}
 		</label>
 		<label class="x_inline" for="status_stop">
-			<input type="radio" id="status_stop" name="status" value="STOP" checked="checked"|cond="$oSticker->status == 'STOP'"> 정지
+			<input type="radio" id="status_stop" name="status" value="STOP" checked="checked"|cond="$oSticker->status == 'STOP'" > {$lang->stkr_status_stop}
 		</label>
 	</td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">내용</th>
+	<th scope="col" class="nowr">{$lang->content}</th>
 	<td>{$editor}</td>
 </tr>
 
@@ -198,17 +198,17 @@
 </table>
 
 <div class="x_pull-left">
-	<button class="x_btn" type="button" onclick="history.go(-1)">목록</button>
+	<button class="x_btn" type="button" onclick="history.go(-1)">{$lang->cmd_list}</button>
 </div>
 <div class="x_pull-right">
-	<button type="submit" name="act" class="x_btn" value="procStickerAdminDelete">삭제</button>
-	<button type="submit" class="x_btn x_btn-primary" style="width:120px;" value="false">수정</button>
+	<button type="submit" name="act" class="x_btn" value="procStickerAdminDelete">{$lang->cmd_delete}</button>
+	<button type="submit" class="x_btn x_btn-primary" style="width:120px;" value="false">{$lang->cmd_modify}</button>
 </div>
 
 </form>
 <BR>
 
-<h2>파일 정보</h2>
+<h2>{$lang->stkr_file_info}</h2>
 <table class="x_table">
 <colgroup>
 <col width="120">
@@ -229,43 +229,43 @@
 			<div class="sticker_file_info">
 				<table>
 					<tr>
-						<th scope="col" class="nowr">스티커 파일 고유번호</th>
+						<th scope="col" class="nowr">{$lang->stkr_unique_sticker_file_srl}</th>
 						<td>{$oStickerFile->sticker_file_srl}</td>
 					</tr>
 					<tr>
-						<th scope="col" class="nowr">파일 고유번호</th>
+						<th scope="col" class="nowr">{$lang->stkr_unique_file_srl}</th>
 						<td>{$oStickerFile->file_srl}</td>
 					</tr>
 					<tr>
-						<th scope="col" class="nowr">파일 이름</th>
+						<th scope="col" class="nowr">{$lang->filename}</th>
 						<td>
 							<!--@if($oStickerFile->file_info)-->
 							<a href="{htmlspecialchars_decode($oStickerFile->file_info->download_url)}">{htmlspecialchars($oStickerFile->file_name, ENT_COMPAT | ENT_HTML401, 'UTF-8', false)}</a> ({$oStickerFile->file_info->download_count})
 							<!--@else-->
-							<span> (존재하지 않는 파일입니다)</span>
+							<span> ({$lang->stkr_file_not_exists})</span>
 							<!--@end-->
 						</td>
 					</tr>
 					<!--@if($oStickerFile->file_info)-->
 					<tr>
-						<th scope="col" class="nowr">파일 크기</th>
+						<th scope="col" class="nowr">{$lang->file_size}</th>
 						<td>{FileHandler::filesize($oStickerFile->file_info->file_size)}</td>
 					</tr>
 					<tr>
-						<th scope="col" class="nowr">등록자 IP</th>
+						<th scope="col" class="nowr">{$lang->stkr_registrant_ip}</th>
 						<td>{$oStickerFile->file_info->ipaddress}</td>
 					</tr>
 					<!--@endif-->
 					<tr>
-						<th scope="col" class="nowr">위치</th>
+						<th scope="col" class="nowr">{$lang->stkr_location}</th>
 						<td><a href="{$oStickerFile->url}" target="_blink">{$oStickerFile->url}</a></td>
 					</tr>
 					<tr>
-						<th scope="col" class="nowr">스티커 파일 등록일</th>
+						<th scope="col" class="nowr">{$lang->stkr_sticker_file_regdate}</th>
 						<td>{zdate($oStickerFile->regdate,"Y.m.d H:i:s")}<!--@if($oStickerFile->file_info)--> ({zdate($oStickerFile->file_info->regdate,"Y.m.d H:i:s")})<!--@endif--></td>
 					</tr>
 					<tr>
-						<th scope="col" class="nowr">사용 횟수</th>
+						<th scope="col" class="nowr">{$lang->stkr_used_count_label}</th>
 						<td>{$oStickerFile->used_count}</td>
 					</tr>
 				</table>
@@ -279,9 +279,9 @@
 	<input type="hidden" name="module" value="{$module}">
 	<input type="hidden" name="act" value="procStickerAdminDelete">
 	<input type="hidden" name="sticker_srl" value="{$oSticker->sticker_srl}">
-	<div class="x_pull-left"><button class="x_btn" type="button" onclick="history.go(-1)">목록</button></div>
+	<div class="x_pull-left"><button class="x_btn" type="button" onclick="history.go(-1)">{$lang->cmd_list}</button></div>
 	<div class="x_pull-right">
-	<button type="submit" name="is_all" class="x_btn" value="false">삭제</button>
+	<button type="submit" name="is_all" class="x_btn" value="false">{$lang->cmd_delete}</button>
 	</div>
 </form>
 

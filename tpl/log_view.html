@@ -7,16 +7,16 @@
 	<p>{$XE_VALIDATOR_MESSAGE}</p>
 </div>
 
-<h2>로그</h2>
+<h2>{$lang->stkr_admin_log}</h2>
 <table class="x_table x_table-striped x_table-hover" style="margin:0 0 15px 0;">
 <colgroup><col width="120">
 </colgroup><tbody><tr>
-<th scope="col" class="nowr">닉네임</th>
+<th scope="col" class="nowr">{$lang->nick_name}</th>
 <td><a href="#popup_menu_area" class="member_{$oLog->member_srl}" onclick="return false">{$oLog->nick_name}</a>
 </td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">스티커 번호</th>
+	<th scope="col" class="nowr">{$lang->stkr_log_sticker_srl}</th>
 	<td>
 		<!--@if($oSticker)-->
 		<a href="{getUrl('','mid', 'sticker', 'sticker_srl', $oSticker->sticker_srl)}" target="_blank">{$oSticker->sticker_srl}</a></td>
@@ -25,37 +25,37 @@
 		<!--@end-->
 </tr>
 <tr cond="$oLog->sticker_file_srl">
-	<th scope="col" class="nowr">스티커 파일 번호</th>
+	<th scope="col" class="nowr">{$lang->stkr_log_sticker_file_srl}</th>
 	<td>{$oLog->sticker_file_srl}</td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">제목</th>
-	<td>{$oSticker ? $oSticker->title : "삭제된 스티커입니다."}</td>
+	<th scope="col" class="nowr">{$lang->title}</th>
+	<td>{$oSticker ? $oSticker->title : $lang->stkr_deleted_sticker_text}</td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">등록일</th>
+	<th scope="col" class="nowr">{$lang->regdate}</th>
 	<td>{zdate($oLog->regdate, 'Y-m-d H:i:s')}</td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">IP 주소</th>
+	<th scope="col" class="nowr">{$lang->ipaddress}</th>
 	<td>{$oLog->ipaddress}</td>
 </tr>
 <tr cond="$oLog->comment_srl">
-	<th scope="col" class="nowr">대상 댓글 번호</th>
+	<th scope="col" class="nowr">{$lang->stkr_log_target_comment_srl}</th>
 	<td>{$oLog->comment_srl}</td>
 </tr>
 <tr cond="$oLog->document_srl">
-	<th scope="col" class="nowr">대상 문서 번호</th>
+	<th scope="col" class="nowr">{$lang->stkr_log_target_document_srl}</th>
 	<td>{$oLog->document_srl}</td>
 </tr>
 <tr>
-	<th scope="col" class="nowr">포인트</th>
+	<th scope="col" class="nowr">{$lang->point}</th>
 	<td>
-		{$oLog->point ? $oLog->point : "없음"}
+		{$oLog->point ? $oLog->point : $lang->none}
 	</td>
 </tr>
 <tr cond="$oLog->content">
-	<th scope="col" class="nowr">내용</th>
+	<th scope="col" class="nowr">{$lang->content}</th>
 	<td>
 		<textarea>
 			htmlspecialchars($oLog->content);
@@ -67,5 +67,5 @@
 </table>
 
 <div class="x_pull-left">
-	<button class="x_btn" type="button" onclick="history.go(-1)">목록</button>
+	<button class="x_btn" type="button" onclick="history.go(-1)">{$lang->cmd_list}</button>
 </div>

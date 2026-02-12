@@ -71,7 +71,7 @@
 			var text = (price == 0) ? "스티커를 추가하시겠습니까?" : "포인트 " + price + "을 사용하여 스티커를 구매하시겠습니까?";
 			var msg = confirm(text);
 
-			msg && exec_xml("sticker","procStickerBuy", {mid:'sticker', sticker_srl:sticker_srl}, function(ret_obj){
+			msg && Rhymix.ajax("sticker.procStickerBuy", {mid:'sticker', sticker_srl:sticker_srl}, function(ret_obj){
 				alert("구매하였습니다");
 				location.reload();
 			});
@@ -80,7 +80,7 @@
 
 			var msg = confirm("이 스티커를 삭제하시겠습니까?");
 
-			msg && exec_xml("sticker","procStickerBuyDelete", {mid:'sticker', sticker_srl:sticker_srl}, function(ret_obj){
+			msg && Rhymix.ajax("sticker.procStickerBuyDelete", {mid:'sticker', sticker_srl:sticker_srl}, function(ret_obj){
 				alert("삭제하였습니다.");
 				location.reload();
 			});
@@ -98,7 +98,7 @@
 		var sticker_srl = $this.attr('data-src');
 		var title = $this.parent().parent().find('span.sticker_title').text();
 		var msg = confirm("보유중인 "+title+"을(를) 삭제하시겠습니까?");
-		msg && exec_xml("sticker","procStickerBuyDelete", {mid:'sticker', sticker_srl:sticker_srl}, function(ret_obj){
+		msg && Rhymix.ajax("sticker.procStickerBuyDelete", {mid:'sticker', sticker_srl:sticker_srl}, function(ret_obj){
 			alert("삭제하였습니다.");
 			//location.reload();
 			getMyPage();
@@ -156,7 +156,7 @@ function completeSearch(ret_obj, response_tags, params, fo_obj){
 function deleteSticker(sticker_srl){
 	var msg = confirm("이 스티커를 삭제하시겠습니까?");
 
-	msg && exec_xml("sticker","procStickerBuyDelete", {mid:'sticker', sticker_srl:sticker_srl}, function(ret_obj){
+	msg && Rhymix.ajax("sticker.procStickerBuyDelete", {mid:'sticker', sticker_srl:sticker_srl}, function(ret_obj){
 		alert("삭제하였습니다.");
 		location.reload();
 	});
@@ -170,7 +170,7 @@ function moveStickerPos(sticker_srl, pos){
 	var params = new Array();
 	params['sticker_srl'] = sticker_srl;
 	params['move'] = pos;
-	exec_xml('sticker', 'procStickerBuyOrderChange', params, function(ret_obj){
+	Rhymix.ajax('sticker.procStickerBuyOrderChange', params, function(ret_obj){
 		//location.reload();
 		getMyPage();
 	});

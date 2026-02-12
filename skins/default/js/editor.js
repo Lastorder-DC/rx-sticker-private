@@ -114,7 +114,7 @@
 
 	});
 
-})(jQuery, this);
+})($, this);
 
 
 function deleteFile(sticker_srl, no){
@@ -124,9 +124,9 @@ function deleteFile(sticker_srl, no){
 		no : no
 	};
 
-	jQuery.exec_json('sticker.procStickerFileDelete', params, function(){
+	Rhymix.ajax('sticker.procStickerFileDelete', params, function(){
 		//location.reload();
-		var stk_sect = jQuery(".et_vars.exForm input[name='sticker_file_"+no+"']").parent();
+		var stk_sect = $(".et_vars.exForm input[name='sticker_file_"+no+"']").parent();
 		if(stk_sect.length){
 			stk_sect.find('span.attached_file, button.sticker_delete').remove();
 		}

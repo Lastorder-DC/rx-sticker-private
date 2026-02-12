@@ -27,8 +27,8 @@
 	}
 
 	function closeStickerBlockOverlay(){
-		jQuery('.sticker-block-overlay').remove();
-		jQuery('.sticker-block-target').removeClass('sticker-block-target');
+		$('.sticker-block-overlay').remove();
+		$('.sticker-block-target').removeClass('sticker-block-target');
 	}
 
 	function openStickerBlockOverlay($link, stickerInfo){
@@ -45,10 +45,10 @@
 
 		$link.addClass('sticker-block-target');
 
-		var $overlay = jQuery('<div class="sticker-block-overlay"></div>');
+		var $overlay = $('<div class="sticker-block-overlay"></div>');
 		var blockButtonTitle = isBlockedImage ? '차단 해제' : '차단';
-		var $blockButton = jQuery('<button type="button" class="sticker-overlay-btn sticker-overlay-btn-block" title="' + blockButtonTitle + '"><ion-icon name="ban-outline"></ion-icon></button>');
-		var $moveButton = jQuery('<button type="button" class="sticker-overlay-btn sticker-overlay-btn-move" title="이동"><ion-icon name="link-outline"></ion-icon></button>');
+		var $blockButton = $('<button type="button" class="sticker-overlay-btn sticker-overlay-btn-block" title="' + blockButtonTitle + '"><ion-icon name="ban-outline"></ion-icon></button>');
+		var $moveButton = $('<button type="button" class="sticker-overlay-btn sticker-overlay-btn-move" title="이동"><ion-icon name="link-outline"></ion-icon></button>');
 
 		$blockButton.on('click', function(event){
 			event.preventDefault();
@@ -72,7 +72,7 @@
 					'sticker_src': targetUrl
 				};
 
-				exec_json('sticker.procStickerGetStickerSrl', params, function (response) {
+				Rhymix.ajax('sticker.procStickerGetStickerSrl', params, function (response) {
 					if(response.error) {
 						alert(response.message);
 						return;
@@ -107,7 +107,7 @@
 					'sticker_src': targetUrl
 				};
 
-				exec_json('sticker.procStickerGetStickerSrl', params, function (response) {
+				Rhymix.ajax('sticker.procStickerGetStickerSrl', params, function (response) {
 					if(response.error) {
 						alert(response.message);
 						return;
@@ -133,7 +133,7 @@
 
 	// 스티커 링크 클릭 이벤트 (오버레이 오픈)
 	$(document).on('click', 'a[href*="mid=sticker"][href*="sticker_srl="]', function(e){
-		var $link = jQuery(this);
+		var $link = $(this);
 		var stickerInfo = getStickerInfoFromLink($link);
 		if(!stickerInfo || !$link.find('img').length){
 			return;
@@ -154,7 +154,7 @@
 		closeStickerBlockOverlay();
 	});
 
-})(jQuery);
+})($);
 
 if(typeof window.blockSticker !== 'function'){
 	window.blockSticker = function(sticker_srl){
@@ -166,7 +166,7 @@ if(typeof window.blockSticker !== 'function'){
 			return;
 		}
 
-		exec_json('sticker.procStickerBlockInsert', { sticker_srl: sticker_srl }, function(response){
+		Rhymix.ajax('sticker.procStickerBlockInsert', { sticker_srl: sticker_srl }, function(response){
 			if(response.error){
 				alert(response.message);
 				return;
@@ -187,7 +187,7 @@ if(typeof window.unblockSticker !== 'function'){
 			return;
 		}
 
-		exec_json('sticker.procStickerBlockDelete', { sticker_srl: sticker_srl }, function(response){
+		Rhymix.ajax('sticker.procStickerBlockDelete', { sticker_srl: sticker_srl }, function(response){
 			if(response.error){
 				alert(response.message);
 				return;

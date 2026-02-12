@@ -16,10 +16,10 @@
 	<input type="hidden" name="mid" value="sticker">
 	<input type="hidden" name="sticker_srl" value="{$sticker->sticker_srl}">
 
-	<h1>이 스티커를 삭제하시겠습니까?</h1>
+	<h1>{$lang->stkr_confirm_delete_sticker}</h1>
 	<div class="btnArea">
-		<input class="bd_btn blue" type="submit" value="삭제">
-		<button class="bd_btn" type="button" onclick="history.back()">취소</button>
+		<input class="bd_btn blue" type="submit" value="{$lang->sticker_delete}">
+		<button class="bd_btn" type="button" onclick="history.back()">{$lang->cmd_cancel}</button>
 	</div>
 </form>
 </div>

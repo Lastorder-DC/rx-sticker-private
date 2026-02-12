@@ -7,12 +7,12 @@
 				<include cond="$sticker && $sticker_file" target="./_read.html" />
 			<!--@else-->
 				<div class="message error">
-					<p>삭제되었거나 정지된 스티커입니다.</p>
+					<p>{$lang->stkr_msg_deleted_or_stopped}</p>
 				</div>
 			<!--@end-->
 		<!--@else-->
 				<div class="message error">
-					<p>읽기 권한이 없습니다.</p>
+					<p>{$lang->stkr_msg_no_read_permission}</p>
 				</div>
 		<!--@endif-->
 	<!--@endif-->
@@ -21,7 +21,7 @@
 		<include target="./_list.html" />
 	<!--@else-->
 		<div class="message error">
-			<p>접근 권한이 없습니다.</p>
+			<p>{$lang->stkr_msg_no_access_permission}</p>
 		</div>
 	<!--@end-->
 </div>

@@ -2,8 +2,8 @@
 <load target="./js/board.js" />
 
 <div style="margin:10px; color:black;">
-	<div style="float:left; margin-bottom:10px"><h2>구매 목록</h2></div>
-	<div style="float:right; margin-bottom:10px"><a href="/sticker" class="sbtn_small sbtn-white">팬비닛콘 상점</a></div>
+	<div style="float:left; margin-bottom:10px"><h2>{$lang->stkr_admin_buy_list}</h2></div>
+	<div style="float:right; margin-bottom:10px"><a href="/sticker" class="sbtn_small sbtn-white">{$lang->stkr_shop_title}</a></div>
 </div>
 
 <div id="sticker_mypage" class="stk_bd" style="color:black;">
@@ -14,22 +14,22 @@
 			<thead>
 				<tr>
 					<th>
-						<span>번호</span>
+						<span>{$lang->stkr_number}</span>
 					</th>
 					<th>
-						<span>제목</span>
+						<span>{$lang->sticker_title}</span>
 					</th>
 					<th>
-						<span>구매 가격</span>
+						<span>{$lang->stkr_purchase_price}</span>
 					</th>
 					<th>
-						<span>구매일</span>
+						<span>{$lang->stkr_buy_date}</span>
 					</th>
 					<th>
-						<span>만료일</span>
+						<span>{$lang->stkr_expire_date}</span>
 					</th>
 					<th>
-						<span>설정</span>
+						<span>{$lang->sticker_config}</span>
 					</th>
 				</tr>
 			</thead>
@@ -48,17 +48,17 @@
 						<span>{zdate($sticker->regdate,"Y.m.d H:i")}</span>
 					</td>
 					<td>
-						<span>{$sticker->expdate ? zdate($sticker->expdate,"Y.m.d H:i") : "무기한"}</span>
+						<span>{$sticker->expdate ? zdate($sticker->expdate,"Y.m.d H:i") : "{$lang->stkr_unlimited_period}"}</span>
 					</td>
 					<td>
-						<a cond="$page_navigation->total_count != $no" href="javascript:;" title="위로" class="stk_lnk sticker_up" data-src="{$sticker->sticker_srl}"><ion-icon name="arrow-up-outline"></ion-icon></a>
-						<a cond="$no > 1" href="javascript:;" class="stk_lnk sticker_down" title="아래로" data-src="{$sticker->sticker_srl}"><ion-icon name="arrow-down-outline"></ion-icon></a>
-						<a href="javascript:;" class="stk_lnk sticker_delete" title="삭제" data-src="{$sticker->sticker_srl}"><ion-icon name="trash-outline"></ion-icon></a>
+						<a cond="$page_navigation->total_count != $no" href="javascript:;" title="{$lang->stkr_move_up}" class="stk_lnk sticker_up" data-src="{$sticker->sticker_srl}"><ion-icon name="arrow-up-outline"></ion-icon></a>
+						<a cond="$no > 1" href="javascript:;" class="stk_lnk sticker_down" title="{$lang->stkr_move_down}" data-src="{$sticker->sticker_srl}"><ion-icon name="arrow-down-outline"></ion-icon></a>
+						<a href="javascript:;" class="stk_lnk sticker_delete" title="{$lang->sticker_delete}" data-src="{$sticker->sticker_srl}"><ion-icon name="trash-outline"></ion-icon></a>
 					</td>
 				</tr>
 				<!--<tr cond="!$sticker">
 					<td>
-						보유중인 스티커가 없습니다.
+						{$lang->stkr_no_owned_stickers}
 					</td>
 				</tr>-->
 			</tbody>
@@ -67,11 +67,11 @@
 
 	<div class="text-center">
 		<ul class="pagination">
-			<li><a href="{getUrl('page','','module_srl','')}">&laquo; 첫 페이지</a></li>
+			<li><a href="{getUrl('page','','module_srl','')}">&laquo; {$lang->first_page}</a></li>
 			<!--@while($page_no = $page_navigation->getNextPage())-->
 			<li class="active"|cond="$page == $page_no || (!$page && $page_no == 1)"><a href="{getUrl('page',$page_no,'module_srl','')}">{$page_no}</a></li>
 			<!--@end-->
-			<li><a href="{getUrl('page',$page_navigation->last_page,'module_srl','')}">끝 페이지 &raquo;</a></li>
+			<li><a href="{getUrl('page',$page_navigation->last_page,'module_srl','')}">{$lang->last_page} &raquo;</a></li>
 		</ul>
 	</div>
 </div>

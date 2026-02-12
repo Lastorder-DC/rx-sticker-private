@@ -50,8 +50,8 @@
 
 	<div class="btm_mn clear">
 		<div class="fl">
-			<a class="btn_img fl" href="{getUrl('', 'mid', 'sticker')}" cond="$search_target"><i class="fa fa-bars"></i> 목록</a>
-			<a class="btn_img fl" href="{getUrl('', 'mid', 'sticker', 'search_target', 'status', 'search_keyword', 'CHECK')}" cond="!$search_target"><i class="fa fa-minus"></i> 검토 목록</a>
+			<a class="btn_img fl" href="{getUrl('', 'mid', 'sticker')}" cond="$search_target"><i class="fa fa-bars"></i> {$lang->cmd_list}</a>
+			<a class="btn_img fl" href="{getUrl('', 'mid', 'sticker', 'search_target', 'status', 'search_keyword', 'CHECK')}" cond="!$search_target"><i class="fa fa-minus"></i> {$lang->stkr_review_list}</a>
 
 			<form action="{getUrl()}" method="get" onsubmit="return procFilter(this, search)" no-error-return-url="true" class="bd_srch_btm on">
 				<input type="hidden" name="act" value="">
@@ -59,25 +59,25 @@
 				<input type="hidden" name="mid" value="{$mid}">
 				<input type="hidden" name="category" value="">
 				<span class="btn_img itx_wrp" method="get" style="width: 140px;">
-					<label for="bd_srch_btm_itx_111" style="visibility: visible;">검색</label>
+					<label for="bd_srch_btm_itx_111" style="visibility: visible;">{$lang->cmd_search}</label>
 					<input type="text" name="search_keyword" id="bd_srch_btm_itx_111" class="bd_srch_btm_itx srch_itx acInput" value="{htmlspecialchars($search_keyword)}" autocomplete="off">
 				</span>
 				<span class="btn_img select">
 					<select name="search_target">
-						<option value="title" selected="selected"|cond="$search_target == 'title'">제목</option>
-						<option value="content" selected="selected"|cond="$search_target == 'content'">내용</option>
-						<option value="nick_name" selected="selected"|cond="$search_target == 'nick_name'">닉네임</option>
-						<option value="tag" selected="selected"|cond="$search_target == 'tag'">태그</option>	
+						<option value="title" selected="selected"|cond="$search_target == 'title'">{$lang->sticker_title}</option>
+						<option value="content" selected="selected"|cond="$search_target == 'content'">{$lang->content}</option>
+						<option value="nick_name" selected="selected"|cond="$search_target == 'nick_name'">{$lang->nick_name}</option>
+						<option value="tag" selected="selected"|cond="$search_target == 'tag'">{$lang->tag}</option>	
 					</select>
 				</span>
-				<a class="btn_img fl" onclick="jQuery(this).parents('form.bd_srch_btm').submit();return false"><i class="fa fa-search"></i> 검색</a>
+				<a class="btn_img fl" onclick="jQuery(this).parents('form.bd_srch_btm').submit();return false"><i class="fa fa-search"></i> {$lang->cmd_search}</a>
 			</form>
 		</div>
 
 		<div class="fr">
-			<a class="btn_img" href="{getUrl('', 'mid', 'sticker', 'sticker_srl', '', 'act', 'dispStickerWrite')}"><i class="fas fa-pen-square"></i> 스티커 등록</a> 
-			<a class="btn_img" href="{getUrl('', 'mid', 'sticker', 'sticker_srl', '', 'act', 'dispStickerMylist')}"><i class="fa fa-cog"></i> 구매 목록</a>
-			<a cond="$logged_info->is_admin == 'Y' || $grant->manager" class="btn_img" href="{getUrl('', 'mid', 'sticker', 'sticker_srl', '', 'act', 'dispStickerAdminConfig')}" target="_blank"><i class="fa fa-cog"></i> 모듈 설정</a>
+			<a class="btn_img" href="{getUrl('', 'mid', 'sticker', 'sticker_srl', '', 'act', 'dispStickerWrite')}"><i class="fas fa-pen-square"></i> {$lang->stkr_sticker_register}</a> 
+			<a class="btn_img" href="{getUrl('', 'mid', 'sticker', 'sticker_srl', '', 'act', 'dispStickerMylist')}"><i class="fa fa-cog"></i> {$lang->stkr_admin_buy_list}</a>
+			<a cond="$logged_info->is_admin == 'Y' || $grant->manager" class="btn_img" href="{getUrl('', 'mid', 'sticker', 'sticker_srl', '', 'act', 'dispStickerAdminConfig')}" target="_blank"><i class="fa fa-cog"></i> {$lang->sticker_config}</a>
 		</div>
 	</div>
 

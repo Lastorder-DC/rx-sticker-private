@@ -171,3 +171,4 @@ $lang->stkr_alert_upload_range_invalid = '스티커 업로드 갯수 범위 최�
 $lang->stkr_alert_min_image_size_too_small = '이미지 최소 크기 값이 너무 작습니다.';
 $lang->stkr_alert_file_size_invalid = '파일 용량값이 올바르지 않습니다.';
 $lang->stkr_alert_comment_limit_invalid = '댓글 스티커 등록 제한값이 올바르지 않습니다.';
+$lang->mobile_skin_settings = '모바일 스킨 설정';

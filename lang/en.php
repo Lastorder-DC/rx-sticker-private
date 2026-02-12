@@ -171,3 +171,4 @@ $lang->stkr_alert_upload_range_invalid = 'The minimum upload range value cannot 
 $lang->stkr_alert_min_image_size_too_small = 'The minimum image size value is too small.';
 $lang->stkr_alert_file_size_invalid = 'The file size value is invalid.';
 $lang->stkr_alert_comment_limit_invalid = 'The comment sticker limit value is invalid.';
+$lang->mobile_skin_settings = 'Mobile skin settings';

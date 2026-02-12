@@ -1,13 +1,13 @@
 # XE 스티커 모듈
 
-XE 환경에서 디시인사이드나 마루마루와 같이 댓글단에서 이모티콘을 손쉽게 사용하게 해주는 모듈입니다.
+XE 환경에서 디시인사이드나 아카라이브 같이 댓글단에서 이모티콘을 손쉽게 사용하게 해주는 모듈입니다.
 스킨단 js, css는 별도로 첨부하였으나 초보자에겐 권하지 않습니다.
 아직 모바일 스킨은 지원하지 않습니다.
 
 ## Server Requirements
-* PHP version 5.4.0 or greater
+* PHP version 7.4.0 or greater
 * GD Library
-* XE 1.8 latest version
+* Rhymix 2.1 latest version
 
 ## Installation
 1. /module/sticker에 모듈 파일 복사

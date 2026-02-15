@@ -48,12 +48,12 @@
 						<span>{zdate($sticker->regdate,"Y.m.d H:i")}</span>
 					</td>
 					<td>
-						<span>{$sticker->expdate ? zdate($sticker->expdate,"Y.m.d H:i") : "{$lang->stkr_unlimited_period}"}</span>
+						<span>{$sticker->expdate ? zdate($sticker->expdate,"Y.m.d H:i") : $lang->stkr_unlimited_period}</span>
 					</td>
 					<td>
-						<a cond="$page_navigation->total_count != $no" href="javascript:;" title="{$lang->stkr_move_up}" class="stk_lnk sticker_up" data-src="{$sticker->sticker_srl}"><ion-icon name="arrow-up-outline"></ion-icon></a>
-						<a cond="$no > 1" href="javascript:;" class="stk_lnk sticker_down" title="{$lang->stkr_move_down}" data-src="{$sticker->sticker_srl}"><ion-icon name="arrow-down-outline"></ion-icon></a>
-						<a href="javascript:;" class="stk_lnk sticker_delete" title="{$lang->sticker_delete}" data-src="{$sticker->sticker_srl}"><ion-icon name="trash-outline"></ion-icon></a>
+						<a cond="$page_navigation->total_count != $no" href="javascript:;" title="{$lang->stkr_move_up}" class="stk_lnk sticker_up" data-src="{$sticker->sticker_srl}"><i class="iconoir-arrow-up" aria-hidden="true"></i></a>
+						<a cond="$no > 1" href="javascript:;" class="stk_lnk sticker_down" title="{$lang->stkr_move_down}" data-src="{$sticker->sticker_srl}"><i class="iconoir-arrow-down" aria-hidden="true"></i></a>
+						<a href="javascript:;" class="stk_lnk sticker_delete" title="{$lang->sticker_delete}" data-src="{$sticker->sticker_srl}"><i class="iconoir-trash" aria-hidden="true"></i></a>
 					</td>
 				</tr>
 				<!--<tr cond="!$sticker">

@@ -609,6 +609,7 @@ class stickerController extends sticker
 		$args->type = "deleteBuySticker";
 		$this->insertStickerLog($args);
 		$this->_deleteStickerBuyByMemberSrl($logged_info->member_srl, $sticker_srl);
+		ModuleHandler::triggerCall('sticker.deleteStickerMember', 'after', $args);
 
 		$this->setMessage('success_deleted');
 
@@ -1886,6 +1887,8 @@ class stickerController extends sticker
 		$args = new stdClass();
 		$args->sticker_srl = $sticker_srl;
 		$output = executeQuery('sticker.deleteSticker', $args);
+		ModuleHandler::triggerCall('sticker.deleteSticker', 'after', $args);
+		
 		Cache::set(sprintf('sticker:item:%d', intval($sticker_srl)), null);
 	}
 

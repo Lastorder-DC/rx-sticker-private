@@ -1,12 +1,13 @@
 <?php
 /*! Copyright (C) 2016 BGM STORAGE. All rights reserved. */
 use Rhymix\Framework\Cache;
+use Rhymix\Framework\Security;
+
 /**
  * @class  stickerController
  * @author Huhani (mmia268@gmail.com)
  * @brief  Sticker module controller class.
  */
-
 class stickerController extends sticker
 {
 	function init(){
@@ -1314,8 +1315,7 @@ class stickerController extends sticker
 			require_once 'sticker.lib.php';
 
 			$filename_path = strrpos($uploaded_filename, '/');
-			$random = new Password();
-			$output_srl = substr($uploaded_filename, 0, $filename_path+1).$random->createSecureSalt(32, 'hex').'.gif';
+			$output_srl = substr($uploaded_filename, 0, $filename_path+1).Security::getRandom(32, 'hex').'.gif';
 
 			$resize = resizeGIF($uploaded_filename, $output_srl, $min_width, $min_height);
 			if($resize){
@@ -1349,8 +1349,7 @@ class stickerController extends sticker
 
 		//set output_filename
 		$filename_path = strrpos($uploaded_filename, '/');
-		$random = new Password();
-		$output_srl = substr($uploaded_filename, 0, $filename_path+1).$random->createSecureSalt(32, 'hex').'.jpg';
+		$output_srl = substr($uploaded_filename, 0, $filename_path+1).Security::getRandom(32, 'hex').'.jpg';
 
 		//set source_filename
 		$source_filename_withoutExt = strrpos($source_filename, '.');
@@ -1439,8 +1438,7 @@ class stickerController extends sticker
 			require_once 'sticker.lib.php';
 
 			$filename_path = strrpos($uploaded_filename, '/');
-			$random = new Password();
-			$output_name = substr($uploaded_filename, 0, $filename_path+1).$random->createSecureSalt(32, 'hex').'.gif';
+			$output_name = substr($uploaded_filename, 0, $filename_path+1).Security::getRandom(32, 'hex').'.gif';
 
 			$resize = resizeGIF($uploaded_filename, $output_name, $min_width, $min_height);
 			if($resize){
@@ -1477,8 +1475,7 @@ class stickerController extends sticker
 
 		//set output_filename
 		$filename_path = strrpos($uploaded_filename, '/');
-		$random = new Password();
-		$output_srl = substr($uploaded_filename, 0, $filename_path+1).$random->createSecureSalt(32, 'hex').'.jpg';
+		$output_srl = substr($uploaded_filename, 0, $filename_path+1).Security::getRandom(32, 'hex').'.jpg';
 
 		//set source_filename
 		$source_filename_withoutExt = strrpos($source_filename, '.');

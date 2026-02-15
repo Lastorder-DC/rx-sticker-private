@@ -24,8 +24,8 @@ class sticker extends ModuleObject
 
 	function moduleInstall()
 	{
-		$oModuleModel = getModel('module');
-		$oModuleController = getController('module');
+		$oModuleModel = moduleModel::getInstance();
+		$oModuleController = moduleController::getInstance();
 
 		$sticker_info = $oModuleModel->getModuleInfoByMid('sticker');
 		if(!$sticker_info->module_srl) {
@@ -94,8 +94,8 @@ class sticker extends ModuleObject
 
 	function moduleUninstall()
 	{
-		$oModuleModel = getModel('module');
-		$oModuleController = getController('module');
+		$oModuleModel = moduleModel::getInstance();
+		$oModuleController = moduleController::getInstance();
 
 		//트리거 삭제
 		foreach ($this->triggers as $trigger)
@@ -121,7 +121,7 @@ class sticker extends ModuleObject
 
 	function checkUpdate()
 	{
-		$oModuleModel = getModel('module');
+		$oModuleModel = moduleModel::getInstance();
 		foreach ($this->triggers as $trigger)
 		{
 			if (!$oModuleModel->getTrigger($trigger[0], $trigger[1], $trigger[2], $trigger[3], $trigger[4]))
@@ -136,8 +136,8 @@ class sticker extends ModuleObject
 	function moduleUpdate()
 	{
 
-		$oModuleModel = getModel('module');
-		$oModuleController = getController('module');
+		$oModuleModel = moduleModel::getInstance();
+		$oModuleController = moduleController::getInstance();
 		foreach ($this->triggers as $trigger)
 		{
 			if (!$oModuleModel->getTrigger($trigger[0], $trigger[1], $trigger[2], $trigger[3], $trigger[4]))

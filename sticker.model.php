@@ -18,7 +18,7 @@ class stickerModel extends sticker
 		static $config = null;
 		if(is_null($config))
 		{
-			$oModuleModel = getModel('module');
+			$oModuleModel = moduleModel::getInstance();
 			$config = $oModuleModel->getModuleConfig('sticker');
 			if(!$config)
 			{

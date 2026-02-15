@@ -9,7 +9,7 @@ class stickerAdminView extends sticker
 {
 	public function init(){
 
-		$oModuleModel = getModel('module');
+		$oModuleModel = moduleModel::getInstance();
 		$this->module_info = $oModuleModel->getModuleInfoByMid("sticker");
 
 		$this->setTemplatePath($this->module_path.'tpl');
@@ -60,13 +60,13 @@ class stickerAdminView extends sticker
 
 		$output->data->sticker_editor = htmlspecialchars($output->data->content, ENT_COMPAT | ENT_HTML401, 'UTF-8', false);
 
-		$oFileModel = getModel('file');
+		$oFileModel = fileModel::getInstance();
 		foreach($output1->data as &$value){
 			$oFileInfo = $oFileModel->getFile($value->file_srl);
 			$value->file_info = $oFileInfo;
 		}
 
-		$oEditorModel = getModel('editor');
+		$oEditorModel = editorModel::getInstance();
 		$option = new stdClass();
 		$option->primary_key_name = 'sticker_srl';
 		$option->content_key_name = 'content';
@@ -106,8 +106,8 @@ class stickerAdminView extends sticker
 		$args->page = Context::get('page') ? Context::get('page') : 1;
 		$output = executeQueryArray('sticker.getStickerBuyList'.($search_target == 'status' && $search_keyword == 'ACTIVE' ? "ByActive" : ""), $args);
 
-		$oMemberModel = getModel('member');
-		$oStickerModel = getModel('sticker');
+		$oMemberModel = memberModel::getInstance();
+		$oStickerModel = stickerModel::getInstance();
 		foreach($output->data as &$value){
 			$oMember = $oMemberModel->getMemberInfoByMemberSrl($value->member_srl);
 			$value->nick_name = $oMember->nick_name;
@@ -133,13 +133,13 @@ class stickerAdminView extends sticker
 			return new BaseObject(-1,'msg_invalid_data');
 		}
 
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 		$oSticker = $oStickerModel->getSticker($output->data->sticker_srl);
 		if(!$oSticker){
 			return new BaseObject(-1,'msg_invalid_sticker');
 		}
 
-		$oMemberModel = getModel('member');
+		$oMemberModel = memberModel::getInstance();
 		$oMember = $oMemberModel->getMemberInfoByMemberSrl($output->data->member_srl);
 		$output->data->nick_name = $oMember->nick_name;
 
@@ -165,8 +165,8 @@ class stickerAdminView extends sticker
 		$args->page = Context::get('page') ? Context::get('page') : 1;
 		$output = executeQueryArray('sticker.getStickerLogs', $args);
 
-		$oMemberModel = getModel('member');
-		$oStickerModel = getModel('sticker');
+		$oMemberModel = memberModel::getInstance();
+		$oStickerModel = stickerModel::getInstance();
 		foreach($output->data as &$value){
 			$oMember = $oMemberModel->getMemberInfoByMemberSrl($value->member_srl);
 			$value->nick_name = $oMember->nick_name;
@@ -190,10 +190,10 @@ class stickerAdminView extends sticker
 		if(empty($output->data)){
 			return new BaseObject(-1,'msg_invalid_data');
 		}
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 		$oSticker = $oStickerModel->getSticker($output->data->sticker_srl);
 
-		$oMemberModel = getModel('member');
+		$oMemberModel = memberModel::getInstance();
 		$oMember = $oMemberModel->getMemberInfoByMemberSrl($output->data->member_srl);
 		$output->data->nick_name = $oMember->nick_name;
 
@@ -205,7 +205,7 @@ class stickerAdminView extends sticker
 
 	function dispStickerAdminConfig(){
 		if(!$this->module_config){
-			$oStickerModel = getModel('sticker');
+			$oStickerModel = stickerModel::getInstance();
 			$config = $oStickerModel->getConfig();
 			$this->module_config = $config;
 		}
@@ -213,7 +213,7 @@ class stickerAdminView extends sticker
 		if($this->module_info && $this->module_info->module == "sticker"){
 			$module_info = $this->module_info;
 		} else {
-			$oModuleModel = getModel('module');
+			$oModuleModel = moduleModel::getInstance();
 			$module_info = $oModuleModel->getModuleInfoByMid('sticker');
 		}
 
@@ -223,16 +223,16 @@ class stickerAdminView extends sticker
 	}
 
 	function dispStickerAdminCategoryInfo(){
-		$oDocumentModel = getModel('document');
+		$oDocumentModel = documentModel::getInstance();
 		Context::set('category_content', $oDocumentModel->getCategoryHTML($this->module_info->module_srl));
 
 		$this->setTemplateFile('category_list');
 	}
 
 	function dispStickerAdminGrantInfo(){
-		$oModuleAdminModel = getAdminModel('module');
+		$oModuleAdminModel = moduleAdminModel::getInstance();
 
-		$oModuleModel = getModel('module');
+		$oModuleModel = moduleModel::getInstance();
 		$this->mid_info = $oModuleModel->getModuleInfoByMid("sticker");
 
 		$admin_member = $oModuleModel->getAdminId($this->mid_info->module_srl);
@@ -245,14 +245,14 @@ class stickerAdminView extends sticker
 	function dispStickerAdminDesign(){
 		Context::set('module_info', $this->module_info);
 
-		$oLayoutModel = getModel('layout');
+		$oLayoutModel = layoutModel::getInstance();
 		$layout_list = $oLayoutModel->getLayoutList();
 		$mlayout_list = $oLayoutModel->getLayoutList(0, 'M');
 
 		Context::set('layout_list', $layout_list);
 		Context::set('mlayout_list', $mlayout_list);
 
-		$oModuleModel = getModel('module');
+		$oModuleModel = moduleModel::getInstance();
 		$skin_list = $oModuleModel->getSkins($this->module_path);
 		Context::set('skin_list', $skin_list);
 
@@ -265,10 +265,10 @@ class stickerAdminView extends sticker
 
 	function dispStickerAdminSkinInfo() {
 
-		$oModuleModel = getModel('module');
+		$oModuleModel = moduleModel::getInstance();
 		$mid_info = $oModuleModel->getModuleInfoByMid("sticker");
 
-		$oModuleAdminModel = getAdminModel('module');
+		$oModuleAdminModel = moduleAdminModel::getInstance();
 		$skin_content = $oModuleAdminModel->getModuleSkinHTML($mid_info->module_srl);
 		Context::set('skin_content', $skin_content);
 
@@ -277,10 +277,10 @@ class stickerAdminView extends sticker
 
 	function dispStickerAdminMobileSkinInfo() {
 
-		$oModuleModel = getModel('module');
+		$oModuleModel = moduleModel::getInstance();
 		$mid_info = $oModuleModel->getModuleInfoByMid("sticker");
 
-		$oModuleAdminModel = getAdminModel('module');
+		$oModuleAdminModel = moduleAdminModel::getInstance();
 		$skin_content = $oModuleAdminModel->getModuleMobileSkinHTML($mid_info->module_srl);
 		Context::set('skin_content', $skin_content);
 

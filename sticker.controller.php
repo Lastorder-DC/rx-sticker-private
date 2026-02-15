@@ -11,7 +11,7 @@ class stickerController extends sticker
 {
 	function init(){
 		//직접적으로 sticker모듈이 로딩되었을 때만 적용됨.
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 
 		$this->module_config = $oStickerModel->getConfig();
 		$this->module_config->start_time = date('YmdHis');
@@ -32,13 +32,13 @@ class stickerController extends sticker
 			return new BaseObject();
 		}
 
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 		$module_config = $oStickerModel->getConfig();
 
 		if($module_config->add_member_menu === "Y"){
 			Context::loadLang('./modules/sticker/lang/lang.xml');
 
-			$oMemberController = getController('member');
+			$oMemberController = memberController::getInstance();
 			$oMemberController->addMemberMenu('dispStickerMylist', 'cmd_sticker_mypage');
 			$oMemberController->addMemberMenu('dispStickerMyBlock', '차단한 스티커');
 		}
@@ -56,7 +56,7 @@ class stickerController extends sticker
 
 		$logged_info = Context::get('logged_info');
 
-		$oModuleModel = getModel('module');
+		$oModuleModel = moduleModel::getInstance();
 		$columnList = array('module');
 		$cur_module_info = $oModuleModel->getModuleInfoByMid($mid, 0, $columnList);
 
@@ -67,7 +67,7 @@ class stickerController extends sticker
 		if($member_srl == $logged_info->member_srl){
 			$member_info = $logged_info;
 		} else {
-			$oMemberModel = getModel('member');
+			$oMemberModel = memberModel::getInstance();
 			$member_info = $oMemberModel->getMemberInfoByMemberSrl($member_srl);
 		}
 
@@ -76,7 +76,7 @@ class stickerController extends sticker
 		}
 
 		$url = getUrl('', 'mid', 'sticker', 'search_target', 'nick_name', 'search_keyword', $member_info->nick_name);
-		$oMemberController = getController('member');
+		$oMemberController = memberController::getInstance();
 		$oMemberController->addMemberPopupMenu($url, 'cmd_view_own_sticker', '');
 
 		return new BaseObject();
@@ -99,7 +99,7 @@ class stickerController extends sticker
 	}
 
 	function _isStickerModuleEnabled(){
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 		$module_config = $oStickerModel->getConfig();
 
 		return $module_config->use == 'Y';
@@ -113,7 +113,7 @@ class stickerController extends sticker
 
 	function triggerBeforeInsertComment(&$obj){
 
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 		$module_config = $oStickerModel->getConfig();
 
 		if($module_config->use != "Y"){
@@ -160,7 +160,7 @@ class stickerController extends sticker
 
 	function triggerBeforeUpdateComment(&$obj){
 
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 		$module_config = $oStickerModel->getConfig();
 
 		if($module_config->use != "Y"){
@@ -170,7 +170,7 @@ class stickerController extends sticker
 		$logged_info = Context::get('logged_info');
 
 		if($module_config->cmt_allow_modify === "N" && (!$logged_info || ($logged_info && !$logged_info->is_admin) )){
-			$oCommentModel = getModel('comment');
+			$oCommentModel = commentModel::getInstance();
 			$oComment = $oCommentModel->getComment($obj->comment_srl);
 
 			if($oComment && $oComment->isExists()){
@@ -293,7 +293,7 @@ class stickerController extends sticker
 			return new BaseObject(-1,'msg_access_denied');
 		}
 
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 		$sticker = $oStickerModel->getSticker($sticker_srl);
 		if(!$sticker){
 			return new BaseObject(-1,'msg_invalid_sticker');
@@ -333,7 +333,7 @@ class stickerController extends sticker
 		}
 
 		if(!$this->grant->free){
-			$oPointModel = getModel('point');
+			$oPointModel = pointModel::getInstance();
 			$point = intval($oPointModel->getPoint($member_srl));
 
 			if($sticker->price > $point){
@@ -598,7 +598,7 @@ class stickerController extends sticker
 
 		$sticker_srl = Context::get('sticker_srl');
 
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 		$is_bougth = $oStickerModel->checkBuySticker($logged_info->member_srl, $sticker_srl);
 		if(!$is_bougth){
 			return new BaseObject(-1,'sticker was not exist');
@@ -736,7 +736,7 @@ class stickerController extends sticker
 			return new BaseObject(-1,'GD_library_is_not_installed');
 		}
 
-		$oModuleModel = getModel('module');
+		$oModuleModel = moduleModel::getInstance();
 		$module_info = $oModuleModel->getModuleInfoByMid("sticker");
 
 		$obj = Context::getRequestVars();
@@ -886,7 +886,7 @@ class stickerController extends sticker
 		$file_count = 0;
 
 		//sticker_main_file
-		$oFileController = getController('file');
+		$oFileController = fileController::getInstance();
 		$output = $oFileController->insertFile($obj->sticker_main_file, $module_srl, $sticker_srl, 0, true);
 		if (!$output->toBool()) {
 			return $output;
@@ -964,7 +964,7 @@ class stickerController extends sticker
 		$this->_updateFileStatus($sticker_srl); //sicker_srl;
 
 		if($this->module_config->upload_charge > 0 && !$this->grant->manager){
-			$oPointController = getController('point');
+			$oPointController = pointController::getInstance();
 			$oPointController->setPoint($logged_info->member_srl, $this->module_config->upload_charge, 'minus');
 		}
 
@@ -1001,7 +1001,7 @@ class stickerController extends sticker
 			}
 		}
 
-		$oModuleModel = getModel('module');
+		$oModuleModel = moduleModel::getInstance();
 		$module_info = $oModuleModel->getModuleInfoByMid("sticker");
 
 		$sticker_srl = $sticker->sticker_srl;
@@ -1025,7 +1025,7 @@ class stickerController extends sticker
 		$date = $this->module_config->start_time;
 		$sequence = getNextSequence();
 
-		$oFileController = getController('file');
+		$oFileController = fileController::getInstance();
 
 		if($obj->sticker_main_file){
 
@@ -1644,7 +1644,7 @@ class stickerController extends sticker
 	}
 
 	function _setBuyMemberPoint($sticker_member_srl, $member_srl, $price=0){
-		$oPointController = getController('point');
+		$oPointController = pointController::getInstance();
 		$return_percent = $this->module_config->returnPoint;
 		//판매자 포인트 설정
 		if($return_percent > 0 && $return_percent <= 100){
@@ -1682,7 +1682,7 @@ class stickerController extends sticker
 
 
 	function _checkFakeSticker($sticker_srl, $sticker_file_srl, $member_srl){
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 
 		$isDefaultSticker = $this->_checkDefaultSticker($sticker_srl);
 		if(!$isDefaultSticker){
@@ -1712,7 +1712,7 @@ class stickerController extends sticker
 	}
 
 	function _checkDefaultSticker($sticker_srl){
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 
 		$module_config = $oStickerModel->getConfig();
 		$default_sticker = explode(',', $module_config->default_sticker);
@@ -1877,7 +1877,7 @@ class stickerController extends sticker
 	}
 
 	function _getStickerDeleteMsg(){
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 		$module_config = $oStickerModel->getConfig();
 		return $module_config->deleted_sticker;
 	}
@@ -1899,14 +1899,14 @@ class stickerController extends sticker
 	}
 
 	function _deleteStickerFiles($sticker_srl){ // file_parent_srl
-		$oFileController = getController('file');
+		$oFileController = fileController::getInstance();
 		$output = $oFileController->deleteFiles($sticker_srl);
 
 		$this->_deleteStickerFilesDB($sticker_srl);
 	}
 
 	function _deleteFile($file_srl){
-		$oFileController = getController('file');
+		$oFileController = fileController::getInstance();
 		$output = $oFileController->deleteFile($file_srl);
 	}
 

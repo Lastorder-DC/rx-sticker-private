@@ -13,7 +13,7 @@ class stickerView extends sticker
 		Context::set('config', $this->module_config);
 
 		if($this->mid != "sticker"){
-			$oModuleModel = getModel('module');
+			$oModuleModel = moduleModel::getInstance();
 			$sticker_info = $oModuleModel->getModuleInfoByMid('sticker');
 			$this->module_info = $sticker_info;
 		}
@@ -86,21 +86,21 @@ class stickerView extends sticker
 		$args1->sticker_srl = $sticker_srl;
 		$output1 = executeQueryArray('sticker.getStickerImage', $args1);
 
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 		$is_bougth = false;
 		$is_blocked = false;
 
 		$logged_info = Context::get('logged_info');
 		if($logged_info){
 			$is_bougth = $oStickerModel->checkBuySticker($logged_info->member_srl, $sticker_srl);
-			$oStickerController = getController('sticker');
+			$oStickerController = stickerController::getInstance();
 			$is_blocked = $oStickerController->_isBlockedSticker($logged_info->member_srl, $sticker_srl);
 		}
 
 		$title = !empty($output->data->title) ? $output->data->title : "Untitled";
 		Context::addBrowserTitle($output->data->title);
 
-		$oStickerController = getController('sticker');
+		$oStickerController = stickerController::getInstance();
 		$oStickerController->updateReadedCount($output->data);
 
 		Context::set('date', date('YmdHis'));
@@ -175,7 +175,7 @@ class stickerView extends sticker
 		Context::set('sticker', $sticker);
 		Context::set('sticker_file', $output1->data);
 
-		$oEditorModel = getModel('editor');
+		$oEditorModel = editorModel::getInstance();
 		$option = new stdClass();
 		$option->primary_key_name = 'sticker_srl';
 		$option->content_key_name = 'content';
@@ -189,7 +189,7 @@ class stickerView extends sticker
 		$option->height = 200;
 		$editor = $oEditorModel->getEditor($logged_info->member_srl, $option);
 
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 		$sticker_config = $oStickerModel->getConfig();
 
 		Context::set('editor', $editor);

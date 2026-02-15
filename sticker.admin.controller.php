@@ -15,7 +15,7 @@ class stickerAdminController extends sticker
 	function procStickerAdminConfig()
 	{
 
-		$oModuleController = getController('module');
+		$oModuleController = moduleController::getInstance();
 
 		$config = Context::getRequestVars();
 		getDestroyXeVars($config);
@@ -28,7 +28,7 @@ class stickerAdminController extends sticker
 
 		$config->default_sticker = $config->default_sticker ? $config->default_sticker : "";
 		if($config->browser_title){
-			$oModuleModel = getModel('module');
+			$oModuleModel = moduleModel::getInstance();
 			$sticker_info = $oModuleModel->getModuleInfoByMid('sticker');
 			$sticker_info->browser_title = $config->browser_title;
 			unset($config->browser_title);
@@ -51,10 +51,10 @@ class stickerAdminController extends sticker
 
 		if(Context::getRequestMethod() == 'GET') return new BaseObject(-1, 'msg_invalid_request');
 
-		$oModuleController = getController('module');
+		$oModuleController = moduleController::getInstance();
 		$oModuleController->updateModuleConfig('sticker', $config);
 
-		$oModuleModel = getModel('module');
+		$oModuleModel = moduleModel::getInstance();
 		$sticker_info = $oModuleModel->getModuleInfoByMid('sticker');
 		if($sticker_info){
 			$sticker_info->skin = Context::get('skin');
@@ -84,7 +84,7 @@ class stickerAdminController extends sticker
 		unset($config->module);
 		unset($config->ruleset);
 
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 		$oSticker = $oStickerModel->getSticker($sticker_srl);
 		if(!$oSticker){
 			return new BaseObject(-1,'msg_invalid_sticker');
@@ -171,13 +171,13 @@ class stickerAdminController extends sticker
 	function procStickerAdminDelete(){
 
 		$sticker_srl = Context::get('sticker_srl');
-		$oStickerModel = getModel('sticker');
+		$oStickerModel = stickerModel::getInstance();
 		$oSticker = $oStickerModel->getSticker($sticker_srl);
 		if(!$oSticker){
 			return new BaseObject(-1,'msg_invalid_sticker');
 		}
 
-		$oStickerController = getController('sticker');
+		$oStickerController = stickerController::getInstance();
 		$oStickerController->_deleteSticker($sticker_srl);
 		$oStickerController->_deleteStickerFiles($sticker_srl);
 		$oStickerController->_deleteStickerBuyByStickerSrl($sticker_srl);

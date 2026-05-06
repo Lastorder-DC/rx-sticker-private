@@ -15,7 +15,7 @@
 
 <table class="bd_lst bd_tb_lst bd_tb">
 <tbody>
-	<tr class="notice" cond="notice_count != '0'" loop="$notice => $no, $notice">
+	<tr class="notice" cond="$notice_count != '0'" loop="$notice => $no, $notice">
 	<td class="no">
 	<strong>{$lang->notice}</strong> </td> 
 	<td class="title"><a href="{getUrl('','mid','sticker','sticker_srl',$notice->sticker_srl)}"><strong>{$notice->sticker_title}</strong></a></td>
@@ -32,7 +32,7 @@
 
 
 
-<li cond="notice_count != '0'" loop="$list  => $no, $list" class="lst_stk">
+<li cond="$notice_count != '0'" loop="$list  => $no, $list" class="lst_stk">
 	<a class="hx fixed" href="{getUrl('mid','sticker','sticker_srl',$list->sticker_srl)}">
 		<div class="tmb_wrp ribbon_v2 fin_load" style="max-width:160px">
 		<span class="no_img loading"></span>

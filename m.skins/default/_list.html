@@ -34,7 +34,7 @@
 	</table>
 
 	<ol class="bd_lst bd_tmb_lst gall_style img_load tmb_bg clear">
-		<li cond="notice_count != '0'" loop="$list  => $no, $list" class="lst_stk">
+		<li cond="$notice_count != '0'" loop="$list  => $no, $list" class="lst_stk">
 			<a class="hx fixed" href="{getUrl('mid','sticker','sticker_srl',$list->sticker_srl)}">
 				<div class="tmb_wrp ribbon_v2 fin_load">
 				<span class="no_img loading"></span>

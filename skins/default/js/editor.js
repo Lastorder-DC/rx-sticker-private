@@ -2,12 +2,14 @@
 
 	/* =========================================================
 	 * 상태
+	 *   - state.items[0] 가 '항상' 대표(메인). 모든 동작에서 이 불변식 유지.
+	 *   - state.items[1..N] 은 갤러리 (sticker_file_1 ~ sticker_file_N)
 	 * ========================================================= */
 	var state = {
-		items: [],          // {id, type:'new'|'existing', file?, fileNo?, fileName?, dataUrl?, isMain}
+		items: [],
 		isEdit: false,
 		stickerSrl: 0,
-		maxFiles: 50,
+		maxFiles: 100,
 		minFiles: 1,
 		maxFileSize: 0,
 		allowedMimeTypes: [],
@@ -15,10 +17,32 @@
 		maxPrice: 0
 	};
 
-	var dragSrcIdx = null;  // 내부 드래그(순서 변경)용 인덱스
+	var dragSrcIdx = null;
 
 	function uid() {
 		return 'stk_' + Math.random().toString(36).slice(2, 11);
+	}
+
+	// 기존 파일 URL을 fetch하여 File 객체로 변환
+	function urlToFile(url, fileName) {
+		return fetch(url, { credentials: 'same-origin' })
+			.then(function(res){
+				if (!res.ok) throw new Error('HTTP ' + res.status + ' - ' + url);
+				return res.blob();
+			})
+			.then(function(blob){
+				var name = fileName || 'file';
+				var type = blob.type || 'application/octet-stream';
+				return new File([blob], name, { type: type });
+			});
+	}
+
+	// items[0] 이 항상 대표가 되도록 isMain 플래그 정리
+	function ensureMainInvariant() {
+		if (state.items.length === 0) return;
+		state.items.forEach(function(item, i){
+			item.isMain = (i === 0);
+		});
 	}
 
 	/* =========================================================
@@ -29,15 +53,11 @@
 		var placeholder = document.getElementById('stickerPlaceholder');
 		var countEl = document.getElementById('stickerCurrentCount');
 
-		// 기존 타일 제거 (placeholder는 유지)
+		ensureMainInvariant();
+
 		var oldTiles = grid.querySelectorAll('.sticker_tile');
 		for (var k = 0; k < oldTiles.length; k++) {
 			oldTiles[k].parentNode.removeChild(oldTiles[k]);
-		}
-
-		// 대표가 없으면 첫 번째 항목으로 자동 지정
-		if (state.items.length > 0 && !state.items.some(function(i){ return i.isMain; })) {
-			state.items[0].isMain = true;
 		}
 
 		state.items.forEach(function(item, idx){
@@ -67,18 +87,18 @@
 			});
 			tile.appendChild(del);
 
-			// 클릭 시 대표 지정
+			// 클릭 → 대표 지정 (해당 항목을 맨 앞으로 이동)
 			tile.addEventListener('click', function(){
 				setMain(idx);
 			});
 
-			// 순서 변경 (드래그)
+			// 드래그 순서 변경
 			tile.addEventListener('dragstart', function(e){
 				dragSrcIdx = idx;
 				tile.classList.add('is-dragging');
 				try {
 					e.dataTransfer.effectAllowed = 'move';
-					e.dataTransfer.setData('text/plain', String(idx)); // FF 호환
+					e.dataTransfer.setData('text/plain', String(idx));
 				} catch(_) {}
 			});
 			tile.addEventListener('dragend', function(){
@@ -88,7 +108,7 @@
 				dragSrcIdx = null;
 			});
 			tile.addEventListener('dragover', function(e){
-				if (dragSrcIdx === null) return; // 외부 파일 드롭은 zone이 처리
+				if (dragSrcIdx === null) return;
 				e.preventDefault();
 				try { e.dataTransfer.dropEffect = 'move'; } catch(_) {}
 			});
@@ -113,11 +133,8 @@
 			grid.insertBefore(tile, placeholder);
 		});
 
-		if (countEl) {
-			countEl.textContent = state.items.length;
-		}
+		if (countEl) countEl.textContent = state.items.length;
 
-		// placeholder는 최대치 도달 시 숨김
 		if (state.items.length >= state.maxFiles) {
 			placeholder.classList.add('is-hidden');
 		} else {
@@ -126,7 +143,7 @@
 	}
 
 	/* =========================================================
-	 * 파일 추가/삭제/순서/대표
+	 * 파일 조작
 	 * ========================================================= */
 	function addFiles(fileList) {
 		if (!fileList || fileList.length === 0) return;
@@ -155,10 +172,8 @@
 			}
 			validFiles.push(f);
 		}
-
 		if (validFiles.length === 0) return;
 
-		var pending = validFiles.length;
 		validFiles.forEach(function(file){
 			var item = {
 				id: uid(),
@@ -173,32 +188,29 @@
 			var reader = new FileReader();
 			reader.onload = function(e){
 				item.dataUrl = e.target.result;
-				pending--;
-				if (pending === 0) render();
+				render();
 			};
-			reader.onerror = function(){
-				pending--;
-				if (pending === 0) render();
-			};
+			reader.onerror = function(){ render(); };
 			reader.readAsDataURL(file);
 		});
+
+		render();
 	}
 
 	function removeItem(idx) {
-		var removed = state.items.splice(idx, 1)[0];
-		if (removed && removed.isMain && state.items.length > 0) {
-			state.items[0].isMain = true;
-		}
+		state.items.splice(idx, 1);
 		render();
 	}
 
+	// 클릭한 항목을 대표로 → 배열의 맨 앞으로 이동
 	function setMain(idx) {
-		state.items.forEach(function(item, i){
-			item.isMain = (i === idx);
-		});
+		if (idx <= 0 || idx >= state.items.length) return;
+		var moved = state.items.splice(idx, 1)[0];
+		state.items.unshift(moved);
 		render();
 	}
 
+	// 드래그로 순서 변경
 	function reorder(fromIdx, toIdx) {
 		if (fromIdx === toIdx) return;
 		var moved = state.items.splice(fromIdx, 1)[0];
@@ -224,34 +236,28 @@
 
 		zone.addEventListener('dragenter', function(e){
 			if (!isExternalFileDrag(e)) return;
-			e.preventDefault();
-			e.stopPropagation();
+			e.preventDefault(); e.stopPropagation();
 			zone.classList.add('is-drag-active');
 		});
 		zone.addEventListener('dragover', function(e){
 			if (!isExternalFileDrag(e)) return;
-			e.preventDefault();
-			e.stopPropagation();
+			e.preventDefault(); e.stopPropagation();
 			try { e.dataTransfer.dropEffect = 'copy'; } catch(_) {}
 			zone.classList.add('is-drag-active');
 		});
 		zone.addEventListener('dragleave', function(e){
-			// zone 바깥으로 나갔을 때만 해제
 			if (e.target === zone || !zone.contains(e.relatedTarget)) {
 				zone.classList.remove('is-drag-active');
 			}
 		});
 		zone.addEventListener('drop', function(e){
 			if (!isExternalFileDrag(e)) return;
-			e.preventDefault();
-			e.stopPropagation();
+			e.preventDefault(); e.stopPropagation();
 			zone.classList.remove('is-drag-active');
 			addFiles(e.dataTransfer.files);
 		});
 
-		// 빈 영역(zone 또는 placeholder) 클릭 시 파일 선택
 		zone.addEventListener('click', function(e){
-			// 타일/타일 하위 요소 클릭은 제외
 			var t = e.target;
 			while (t && t !== zone) {
 				if (t.classList && t.classList.contains('sticker_tile')) return;
@@ -264,28 +270,32 @@
 			if (hidden.files && hidden.files.length > 0) {
 				addFiles(hidden.files);
 			}
-			hidden.value = ''; // 같은 파일 다시 선택 가능하도록
+			hidden.value = '';
 		});
 	}
 
 	/* =========================================================
 	 * 폼 제출
+	 *   - state.items[0]                  → sticker_main_file
+	 *   - state.items[1..N] 의 새 파일/기존 파일 모두 fetch 후
+	 *     편집 모드: sticker_file_1, sticker_file_2, ...
+	 *     신규 모드: sticker_file[]
 	 * ========================================================= */
 	function setupFormSubmit() {
 		var form = document.querySelector('form.bd_wrt');
 		if (!form) return;
 
+		var submitting = false;
+
 		form.addEventListener('submit', function(e){
-			// 제목
+			if (submitting) return true; // form.submit() 우회 호출은 통과
+			e.preventDefault();
+
+			// --- 검증 ---
 			var titleEl = form.querySelector('input[name=title]');
 			var title = titleEl ? (titleEl.value || '').trim() : '';
-			if (!title) {
-				e.preventDefault();
-				alert('제목 값은 필수입니다.');
-				return false;
-			}
+			if (!title) { alert('제목 값은 필수입니다.'); return false; }
 
-			// 본문 (에디터 iframe)
 			var content = '';
 			var iframe = form.querySelector('.get_editor iframe');
 			if (iframe) {
@@ -299,106 +309,80 @@
 				var cIn = form.querySelector('input[name=content]');
 				if (cIn) content = (cIn.value || '').trim();
 			}
-			if (!content) {
-				e.preventDefault();
-				alert('내용 값은 필수입니다.');
+			if (!content) { alert('내용 값은 필수입니다.'); return false; }
+
+			if (state.items.length < Math.max(state.minFiles, 1)) {
+				alert('최소 ' + Math.max(state.minFiles, 1) + '장 이상의 스티커 이미지를 업로드해주세요.');
 				return false;
 			}
 
-			// 최소 업로드 수
-			if (state.items.length < state.minFiles) {
-				e.preventDefault();
-				alert('최소 ' + state.minFiles + '장 이상의 스티커 이미지를 업로드해주세요.');
-				return false;
-			}
-
-			// 대표 지정 여부
-			var mainIdx = -1;
-			for (var i = 0; i < state.items.length; i++) {
-				if (state.items[i].isMain) { mainIdx = i; break; }
-			}
-			if (mainIdx === -1) {
-				e.preventDefault();
-				alert('대표 이미지를 지정해주세요.');
-				return false;
-			}
-
-			// 동적 input 컨테이너 초기화
-			var box = document.getElementById('dynamicFileInputs');
-			box.innerHTML = '';
-
-			var mainItem = state.items[mainIdx];
-
-			/* ---- sticker_main_file ----
-			 *  - 대표 항목이 '새 파일'이면 그대로 업로드
-			 *  - 대표 항목이 '기존 파일'이면 서버에 어느 기존 파일을 대표로 쓸지 hint 전달
-			 */
-			if (mainItem.type === 'new') {
-				var mainInput = document.createElement('input');
-				mainInput.type = 'file';
-				mainInput.name = 'sticker_main_file';
-				try {
-					var dtM = new DataTransfer();
-					dtM.items.add(mainItem.file);
-					mainInput.files = dtM.files;
-				} catch (err) {
-					e.preventDefault();
-					alert('이 브라우저에서는 동적 파일 업로드를 지원하지 않습니다.');
-					return false;
-				}
-				box.appendChild(mainInput);
-			} else {
-				// 기존 파일을 대표로 지정한 경우, 서버에서 처리할 수 있도록 hint 전달
-				var h = document.createElement('input');
-				h.type = 'hidden';
-				h.name = 'sticker_main_existing_no';
-				h.value = String(mainItem.fileNo);
-				box.appendChild(h);
-			}
-
-			/* ---- 갤러리 파일들 ----
-			 *  편집 모드(isEdit): sticker_file_1 ~ sticker_file_N (위치별)
-			 *  신규 모드:        sticker_file[] (배열)
-			 *
-			 *  편집 모드에서 기존 파일이 순서 변경된 경우를 서버가 알 수 있도록
-			 *  sticker_file_layout[N] 힌트도 함께 전송 (값: 'existing:기존no' 또는 'new')
-			 */
-			state.items.forEach(function(item, idx){
-				var pos = idx + 1;
-
-				if (item.type === 'new') {
-					var inp = document.createElement('input');
-					inp.type = 'file';
-					inp.name = state.isEdit ? ('sticker_file_' + pos) : 'sticker_file[]';
-					try {
-						var dt = new DataTransfer();
-						dt.items.add(item.file);
-						inp.files = dt.files;
-					} catch (err) {
-						return; // 무시
-					}
-					box.appendChild(inp);
-
-					if (state.isEdit) {
-						var hn = document.createElement('input');
-						hn.type = 'hidden';
-						hn.name = 'sticker_file_layout[' + pos + ']';
-						hn.value = 'new';
-						box.appendChild(hn);
-					}
+			// --- 제출 버튼 lock ---
+			var submitBtn = form.querySelector('input[type=submit], button[type=submit]');
+			var originalBtnVal = null;
+			if (submitBtn) {
+				submitBtn.disabled = true;
+				if (submitBtn.tagName === 'INPUT') {
+					originalBtnVal = submitBtn.value;
+					submitBtn.value = '업로드 중...';
 				} else {
-					// existing
-					if (state.isEdit) {
-						var he = document.createElement('input');
-						he.type = 'hidden';
-						he.name = 'sticker_file_layout[' + pos + ']';
-						he.value = 'existing:' + item.fileNo;
-						box.appendChild(he);
-					}
+					originalBtnVal = submitBtn.textContent;
+					submitBtn.textContent = '업로드 중...';
 				}
+			}
+
+			function restoreBtn() {
+				if (!submitBtn) return;
+				submitBtn.disabled = false;
+				if (submitBtn.tagName === 'INPUT') submitBtn.value = originalBtnVal;
+				else submitBtn.textContent = originalBtnVal;
+			}
+
+			// --- 모든 item을 File 객체로 변환 ---
+			var promises = state.items.map(function(item){
+				if (item.type === 'new') return Promise.resolve(item.file);
+				return urlToFile(item.url, item.fileName);
 			});
 
-			return true;
+			Promise.all(promises).then(function(files){
+				var box = document.getElementById('dynamicFileInputs');
+				box.innerHTML = '';
+
+				try {
+					// 대표 → sticker_main_file
+					var mainInput = document.createElement('input');
+					mainInput.type = 'file';
+					mainInput.name = 'sticker_main_file';
+					var dtM = new DataTransfer();
+					dtM.items.add(files[0]);
+					mainInput.files = dtM.files;
+					box.appendChild(mainInput);
+
+					// 갤러리 → sticker_file_1, sticker_file_2, ... (편집) / sticker_file[] (신규)
+					for (var i = 1; i < files.length; i++) {
+						var inp = document.createElement('input');
+						inp.type = 'file';
+						inp.name = state.isEdit ? ('sticker_file_' + i) : 'sticker_file[]';
+						var dt = new DataTransfer();
+						dt.items.add(files[i]);
+						inp.files = dt.files;
+						box.appendChild(inp);
+					}
+				} catch (err) {
+					console.error(err);
+					restoreBtn();
+					alert('이 브라우저에서는 동적 파일 업로드를 지원하지 않습니다.');
+					return;
+				}
+
+				submitting = true;
+				form.submit();
+			}).catch(function(err){
+				console.error(err);
+				restoreBtn();
+				alert('이미지 처리 중 오류가 발생했습니다.\n' + (err && err.message ? err.message : err));
+			});
+
+			return false;
 		});
 	}
 
@@ -406,31 +390,25 @@
 	 * 초기화
 	 * ========================================================= */
 	$(document).ready(function(){
-		state.maxFileSize = global.stickerConfig.maxFileSize;
+		state.maxFileSize     = global.stickerConfig.maxFileSize;
 		state.allowedMimeTypes = global.stickerConfig.allowMIMEType;
-		state.minPrice = global.stickerConfig.minPrice;
-		state.maxPrice = global.stickerConfig.maxPrice;
-		state.maxFiles = global.stickerConfig.maxFiles || 50;
-		state.minFiles = global.stickerConfig.minFiles || 1;
-		state.isEdit = !!global.stickerConfig.isEdit;
-		state.stickerSrl = global.stickerConfig.stickerSrl || 0;
+		state.minPrice        = global.stickerConfig.minPrice;
+		state.maxPrice        = global.stickerConfig.maxPrice;
+		state.maxFiles        = global.stickerConfig.maxFiles || 100;
+		state.minFiles        = global.stickerConfig.minFiles || 1;
+		state.isEdit          = !!global.stickerConfig.isEdit;
+		state.stickerSrl      = global.stickerConfig.stickerSrl || 0;
 
-		// 기존 파일을 state.items에 로드
-		// no==0 은 대표 이미지, no>=1 은 갤러리 이미지
+		// 기존 파일 로드: no==0 → 대표(맨 앞), no>=1 → 갤러리(no 오름차순)
 		var existing = global.stickerConfig.existingFiles || [];
 		var mainFile = null;
 		var galleryFiles = [];
 		existing.forEach(function(f){
-			if (parseInt(f.no, 10) === 0) {
-				mainFile = f;
-			} else {
-				galleryFiles.push(f);
-			}
+			if (parseInt(f.no, 10) === 0) mainFile = f;
+			else galleryFiles.push(f);
 		});
-		// 갤러리 파일은 no 오름차순 정렬
 		galleryFiles.sort(function(a, b){ return parseInt(a.no, 10) - parseInt(b.no, 10); });
 
-		// state.items 구성: 대표 파일을 맨 앞에, 그 뒤로 갤러리
 		if (mainFile) {
 			state.items.push({
 				id: uid(),
@@ -448,7 +426,7 @@
 				fileNo: parseInt(f.no, 10),
 				fileName: f.fileName,
 				url: f.url,
-				isMain: !mainFile && state.items.length === 0 // 대표 파일 없으면 첫 갤러리를 대표로
+				isMain: false
 			});
 		});
 
@@ -461,14 +439,10 @@
 
 
 /* =========================================================
- * 기존 AJAX 삭제 (구버전 호환 - 외부에서 호출될 수 있음)
+ * 기존 AJAX 삭제 (구버전 호환)
  * ========================================================= */
 function deleteFile(sticker_srl, no){
-	var params = {
-		mid: 'sticker',
-		sticker_srl: sticker_srl,
-		no : no
-	};
+	var params = { mid: 'sticker', sticker_srl: sticker_srl, no: no };
 	if (typeof Rhymix !== 'undefined' && Rhymix.ajax) {
 		Rhymix.ajax('sticker.procStickerFileDelete', params, function(){});
 	}

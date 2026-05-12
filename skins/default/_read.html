@@ -173,7 +173,7 @@ function toggleBlockSticker(sticker_srl, is_blocked){
 				<span class="throw_btn" cond="$is_bougth">
 					<i class="fa fa-trash"></i> {$lang->cmd_trash}
 				</span>
-				<span class="block_btn" cond="$logged_info" onclick="toggleBlockSticker('{$sticker->sticker_srl}', {$is_blocked ? 'true' : 'false'});">
+				<span class="block_btn" cond="$logged_info && $sticker->status == 'PUBLIC'" onclick="toggleBlockSticker('{$sticker->sticker_srl}', {$is_blocked ? 'true' : 'false'});">
 					{$is_blocked ? $lang->stkr_unblock : $lang->stkr_block}
 				</span>
 			</div>

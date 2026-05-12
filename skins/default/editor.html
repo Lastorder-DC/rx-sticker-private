@@ -6,116 +6,91 @@
 	<p>{$XE_VALIDATOR_MESSAGE}</p>
 </div>
 
-<div style="margin:10px">
-	<h2>{$lang->stkr_sticker_register}</h2>
-</div>
-
-<form action="./" method="post" enctype="multipart/form-data" editor_sequence="2" class="bd_wrt bd_wrt_main clear" style="color:black;">
+<form action="./" method="post" enctype="multipart/form-data" editor_sequence="2" class="bd_wrt bd_wrt_main sticker_wrt clear">
 	<input type="hidden" name="mid" value="{$mid}" />
 	<input type="hidden" name="act" value="procStickerInsert" />
 	<input type="hidden" name="content" value="{$sticker->content}" />
 	<input type="hidden" name="sticker_srl" value="{$sticker->sticker_srl}" />
+	<input type="hidden" name="price" value="0" />
 
-	<!--// 상단 : 카테고리, 제목 -->
-	<table class="bd_wrt_hd bd_tb">
-		<tr>
-			<td>
-				<select cond="$mi->use_category=='Y' && $category_list" name="category_srl" class="category">
-					<option value="">{$lang->category}</option>
-					<option loop="$category_list => $val" disabled="disabled"|cond="!$val->grant" value="{$val->category_srl}" selected="selected"|cond="$val->grant&&$val->selected||$val->category_srl==$oDocument->get('category_srl')">
-						{str_repeat("&nbsp;&nbsp;",$val->depth)} {$val->title} ({$val->document_count})
-					</option>
-				</select>
-			</td>
-			<td width="100%">
-				<span class="itx_wrp">
-					<input type="text" name="title" class="itx" id="postTitle" placeholder="{$lang->title}" title="{$lang->title}" value="{$sticker->title}" />
-				</span>
-			</td>
-		</tr>
-	</table>
-	<br />
-	<input type="hidden" name="price" value="0">
-	<!--
-	<table class="et_vars exForm bd_tb">
-		<caption><strong><em>*</em></strong> <small>: {$lang->stkr_required_field}</small></caption>
-		<tbody>
-			<tr>
-				<th scope="row"><em>*</em> {$lang->stkr_sale_point}</th>
-				<td>
-					<input type="number" name="price" class="text itx" value="{$sticker->price}" placeholder="{$lang->cmd_min}{$config->minPoint}P - {$lang->cmd_max}{$config->maxPoint}P">
-				</td>
-			</tr>
-		</tbody>
-	</table>
-	-->
-	<table class="et_vars exForm bd_tb">
-		<tbody>
-			<tr>
-				<th scope="row"><em>*</em> {$lang->stkr_sticker_main_image}</th>
-				<td>
-					<span class="attached_file" cond="$sticker && $sticker_file[0]->no == 0">{$sticker_file[0]->file_name}</span>
-					<input type="file" name="sticker_main_file" accept="image/*">
-					<!--//<input type="hidden" name="sticker_main_file_srl" value="">-->
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><em>*</em> {$lang->sticker} (<span id="fileCount">0</span>{$lang->stkr_uploaded_count_suffix})</th>
-				<td>
-					<button id="selectFilesBtn">{$lang->cmd_select_file}</button>
-					<button id="clearFilesBtn">{$lang->cmd_reset}</button>
-					<input type="file" id="hiddenMultiFileInput" multiple accept="image/*" style="display: none;">
-				</td>
-			</tr>
-			<tr loop="$i=0;$i<$config->maxUploads;$i++">
-				<th scope="row"><em cond="$i<$config->minUploads">*</em> {$lang->stkr_sticker_number_image} {$i+1}</th>
-				<td>
-					<!--@if($sticker && !empty($sticker_file))-->
-						{$image_file = null}
-						<block loop="$sticker_file => $no, $image">
-							<!--@if($image->no == $i+1)-->
-								{@$image_file = $image;}
-							<!--@end-->
-						</block>
+	<!--// 카테고리 -->
+	<div cond="$mi->use_category=='Y' && $category_list" class="sticker_field">
+		<select name="category_srl" class="sticker_category">
+			<option value="">{$lang->category}</option>
+			<!--@foreach($category_list as $val)-->
+			<option disabled="disabled"|cond="!$val->grant" value="{$val->category_srl}" selected="selected"|cond="$val->grant && $val->selected || $val->category_srl == $oDocument->get('category_srl')">
+				{str_repeat("&nbsp;&nbsp;", $val->depth)} {$val->title} ({$val->document_count})
+			</option>
+			<!--@endforeach-->
+		</select>
+	</div>
 
-						<!--@if($sticker && $image_file)-->
-							<span class="attached_file">{$image_file->file_name}</span>
-							<input type="file" name="sticker_file_{$i+1}" accept="image/*">
-							<button cond="$i+1>$config->minUploads" onclick="confirm({$i+1}+'{$lang->stkr_msg_delete_nth_sticker}') && deleteFile({$sticker->sticker_srl}, {$i+1}); return false;" class="sticker_delete">{$lang->sticker_delete}</button>
-							<!--@else-->
-							<input type="file" name="sticker_file_{$i+1}" accept="image/*">
-						<!--@end-->
-					<!--@else-->
-						<input type="file" name="sticker_file[]" accept="image/*">
-					<!--@end-->
-						<!--//<input type="hidden" name="sticker_file_srl[]" value="">-->
-				</td>
-			</tr>
-		</tbody>
-	</table>
+	<!--// 제목 -->
+	<div class="sticker_field sticker_title_field">
+		<input type="text" name="title" class="sticker_title_input" id="postTitle" placeholder="스티커 제목" value="{$sticker->title}" />
+	</div>
 
-	<div class="get_editor">
-		{$editor}
+	<!--// 스티커 업로드 -->
+	<div class="sticker_section">
+		<h3 class="sticker_section_title">스티커 업로드</h3>
+		<div id="stickerUploadZone" class="sticker_upload_zone">
+			<div id="stickerGrid" class="sticker_grid">
+				<!--// 미리보기 타일은 JS가 동적으로 삽입 -->
+				<div id="stickerPlaceholder" class="sticker_placeholder">
+					<span class="sticker_placeholder_text">이미지를 드래그하거나 클릭하여 업로드</span>
+					<span class="sticker_counter">
+						현재 <span id="stickerCurrentCount">0</span>{$lang->stkr_uploaded_count_suffix}
+						/
+						{$lang->cmd_max} {$config->maxUploads}{$lang->stkr_uploaded_count_suffix}
+					</span>
+				</div>
+			</div>
+		</div>
+		<input type="file" id="hiddenMultiFileInput" multiple accept="image/*" style="display:none" />
+		<div id="dynamicFileInputs" style="display:none"></div>
+	</div>
+
+	<!--// 스티커 설명 (에디터) -->
+	<div class="sticker_section">
+		<h3 class="sticker_section_title">스티커 설명</h3>
+		<div class="get_editor sticker_editor_wrap">
+			{$editor}
+		</div>
 	</div>
 
 	<!--// 태그 -->
-	<div class="tag itx_wrp">
-		<span class="itx_wrp">
-			<input type="text" placeholder="{$lang->stkr_tag_input_guide}" name="tags" id="tags" value="{$sticker->tag}" class="itx" />
-		</span>
+	<div class="sticker_field">
+		<input type="text" placeholder="{$lang->stkr_tag_input_guide}" name="tags" id="tags" value="{$sticker->tag}" class="sticker_tag_input" />
 	</div>
 
-	<!--// Buttons -->
-	<div class="regist">
-		<input type="submit" value="{$lang->cmd_registration}" class="bd_btn blue" />
-		<button type="button" onclick="history.back()" class="bd_btn cancle">{$lang->cmd_back}</button>
+	<!--// 버튼 -->
+	<div class="sticker_buttons">
+		<button type="button" onclick="history.back()" class="sticker_btn sticker_btn_cancel">{$lang->cmd_back}</button>
+		<input type="submit" value="{$lang->cmd_registration}" class="sticker_btn sticker_btn_submit" />
 	</div>
 </form>
 
 <script>
+//<![CDATA[
 var stickerConfig = {};
 stickerConfig.allowMIMEType = ['image/jpeg', 'image/png', 'image/gif'];
-stickerConfig.maxFileSize = {$config->file_size}; // KB * 1024
+stickerConfig.maxFileSize = {$config->file_size}; // KB
 stickerConfig.minPrice = {$config->minPoint};
 stickerConfig.maxPrice = {$config->maxPoint};
+stickerConfig.maxFiles = {$config->maxUploads};
+stickerConfig.minFiles = {$config->minUploads};
+stickerConfig.isEdit = <!--@if($sticker && $sticker->sticker_srl)-->true<!--@else-->false<!--@end-->;
+stickerConfig.stickerSrl = <!--@if($sticker && $sticker->sticker_srl)-->{$sticker->sticker_srl}<!--@else-->0<!--@end-->;
+stickerConfig.existingFiles = [];
+
+<!--@if($sticker && !empty($sticker_file))-->
+<!--@foreach($sticker_file as $image)-->
+stickerConfig.existingFiles.push({
+	no: parseInt('{$image->no}', 10),
+	fileName: '{$image->file_name|escapejs}',
+	url: '{$image->url|escapejs}'
+});
+<!--@endforeach-->
+<!--@end-->
+//]]>
 </script>

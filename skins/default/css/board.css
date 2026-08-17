@@ -1231,3 +1231,106 @@ div.stk_img_v > img {border-radius: 3px;}
 	.sticker_grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
 	.sticker_title_input { padding: 13px 16px; }
 }
+
+/* =========================================================
+ * 다크모드 대응 (body.color_scheme_dark)
+ * CKEditor 내부 일절 미포함
+ * ========================================================= */
+
+/* --- 전체 래퍼 --- */
+body.color_scheme_dark .sticker_wrt {
+    color: #e5e7eb !important;
+}
+
+/* --- 제목 입력 --- */
+body.color_scheme_dark .sticker_title_input {
+    background: #1e2330 !important;
+    color: #e5e7eb !important;
+    border-color: #374151 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,.3) !important;
+}
+body.color_scheme_dark .sticker_title_input::placeholder {
+    color: #6b7280 !important;
+}
+body.color_scheme_dark .sticker_title_input:hover {
+    border-color: #4b5563 !important;
+}
+body.color_scheme_dark .sticker_title_input:focus {
+    background: #1e2330 !important;
+    border-color: #5b8def !important;
+    box-shadow: 0 0 0 3px rgba(91,141,239,.2) !important;
+}
+
+/* --- 카테고리 --- */
+body.color_scheme_dark .sticker_category {
+    background: #1e2330 !important;
+    color: #e5e7eb !important;
+    border-color: #374151 !important;
+}
+
+/* --- 섹션 제목 --- */
+body.color_scheme_dark .sticker_section_title {
+    color: #e5e7eb !important;
+}
+
+/* --- 업로드 영역 --- */
+body.color_scheme_dark .sticker_upload_zone {
+    background: #1e2330 !important;
+    border-color: #4b5563 !important;
+}
+body.color_scheme_dark .sticker_upload_zone.is-drag-active {
+    border-color: #5b8def !important;
+    background: rgba(91,141,239,.08) !important;
+}
+
+/* --- placeholder 안내문 / 카운터 --- */
+body.color_scheme_dark .sticker_placeholder_text {
+    color: #9ca3af !important;
+}
+body.color_scheme_dark .sticker_counter {
+    color: #6b7280 !important;
+}
+
+/* --- 타일 --- */
+body.color_scheme_dark .sticker_tile {
+    background: #2a2f3e !important;
+    border-color: #374151 !important;
+}
+body.color_scheme_dark .sticker_tile > img {
+    background: #2a2f3e !important;
+}
+body.color_scheme_dark .sticker_tile:hover {
+    border-color: #4b5563 !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,.4) !important;
+}
+body.color_scheme_dark .sticker_tile.is-main {
+    border-color: #5b8def !important;
+}
+
+/* --- 에디터 래퍼 (CKEditor 외부 border/bg만) --- */
+body.color_scheme_dark .sticker_editor_wrap {
+    background: #1e2330 !important;
+    border-color: #374151 !important;
+}
+
+/* --- 태그 입력 --- */
+body.color_scheme_dark .sticker_tag_input {
+    background: #1e2330 !important;
+    color: #e5e7eb !important;
+    border-color: #374151 !important;
+}
+body.color_scheme_dark .sticker_tag_input::placeholder {
+    color: #6b7280 !important;
+}
+body.color_scheme_dark .sticker_tag_input:focus {
+    border-color: #5b8def !important;
+    box-shadow: 0 0 0 3px rgba(91,141,239,.2) !important;
+}
+
+/* --- 취소 버튼 --- */
+body.color_scheme_dark .sticker_btn_cancel {
+    color: #9ca3af !important;
+}
+body.color_scheme_dark .sticker_btn_cancel:hover {
+    color: #e5e7eb !important;
+}

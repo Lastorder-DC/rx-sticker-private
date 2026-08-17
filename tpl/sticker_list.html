@@ -51,7 +51,7 @@
 <!--@if($search_target == "status" && $search_keyword == "EXPIRED")-->
 				<th scope="col" class="nowr">판매 종료일</th>
 <!--@endif-->
-				<th scope="col" class="nowr">{$lang->ipaddress}</th>
+				<th scope="col" class="nowr" cond="$logged_info && $logged_info->member_srl == 4">{$lang->ipaddress}</th>
 				<th scope="col" class="nowr">{$lang->status}</th>
 			</tr>
 
@@ -61,7 +61,8 @@
 
 			<tr loop="$list => $no, $oSticker">
 				<td class="title">
-					<img src="{$oSticker->main_image}" style="width:50px; height:50px; object-fit:cover; margin:0 5px 0 0;">
+					<img src="{$oSticker->main_image}" cond="!preg_match('/\.mp4$/i', $oSticker->main_image)" style="width:50px; height:50px; object-fit:cover; margin:0 5px 0 0;">
+					<video src="{$oSticker->main_image}" poster="{preg_replace('/\.mp4$/i', '.webp', $oSticker->main_image)}" cond="preg_match('/\.mp4$/i', $oSticker->main_image)" autoplay="autoplay" muted="muted" onended="this.play()" playsinline="playsinline" style="width:50px; height:50px; object-fit:cover; margin:0 5px 0 0;"></video>
 					<a href="{getUrl('sticker_srl', $oSticker->sticker_srl, 'act', 'dispStickerAdminStickerView')}"><!--@if(trim($oSticker->title))-->{htmlspecialchars(cut_str($oSticker->title, 25))}<!--@else--><em>스티커가 없습니다.</em><!--@end--></a></td>
 				<td class="nowr"><a href="#popup_menu_area" class="member_{$oSticker->member_srl}">{$oSticker->nick_name}</a></td>
 				<td class="nowr">{$oSticker->readed_count}</td>
@@ -74,7 +75,7 @@
 <!--@if($search_target == "status" && $search_keyword == "EXPIRED")-->
 				<td class="nowr">{$oSticker->end_date ? zdate($oSticker->end_date,"Y.m.d H:i") : "없음"}</td>
 <!--@endif-->
-				<td class="nowr"><a href="{getUrl('search_target','ipaddress','search_keyword',$oSticker->ipaddress)}">{$oSticker->ipaddress}</a></td>
+				<td class="nowr" cond="$logged_info && $logged_info->member_srl == 4"><a href="{getUrl('search_target','ipaddress','search_keyword',$oSticker->ipaddress)}">{$oSticker->ipaddress}</a></td>
 				<td class="nowr">
 					<!--@if($oSticker->status == 'PUBLIC')-->
 						공개
@@ -144,7 +145,7 @@
 		<option value="tag" selected="selected"|cond="$search_target == 'tag'">태그</option>
 		<option value="nick_name" selected="selected"|cond="$search_target == 'nick_name'">닉네임</option>
 		<option value="member_srl" selected="selected"|cond="$search_target == 'member_srl'">회원 번호</option>
-		<option value="ipaddress" selected="selected"|cond="$search_target == 'ipaddress'">IP주소</option>
+		<option value="ipaddress" selected="selected"|cond="$search_target == 'ipaddress'" cond="$logged_info && $logged_info->member_srl == 4">IP주소</option>
 		<option value="regdate" selected="selected"|cond="$search_target == 'regdate'">등록일</option>
 		<option value="status" selected="selected"|cond="$search_target == 'status'">상태</option>
 	</select>

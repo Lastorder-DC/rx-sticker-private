@@ -18,18 +18,49 @@ class stickerView extends sticker
 			$this->module_info = $sticker_info;
 		}
 
-		$template_path = sprintf("%sskins/%s/", $this->module_path, $this->module_info->skin);
-		$this->module_info->layout_srl = $this->module_info->layout_srl;
-		if(!is_dir($template_path)||!$this->module_info->skin)
-		{
-			$this->module_info->skin = 'default';
-			$template_path = sprintf("%sskins/%s/",$this->module_path, $this->module_info->skin);
-		}
-		$this->setTemplatePath($template_path);
+		// Delegate skin and mobile skin resolution to the Rhymix core so that
+		// the selected skin and its settings always refer to the same directory.
+		$this->setLayoutAndTemplatePaths(Mobile::isFromMobilePhone() ? 'M' : 'P', $this->module_info);
 
 	}
 
+	/**
+	 * Check whether the current member may view stored IP addresses.
+	 *
+	 * @return bool
+	 */
+	private function canViewIp(): bool
+	{
+		$logged_info = Context::get('logged_info');
+		return $logged_info && (int)$logged_info->member_srl === 4;
+	}
+
+	/**
+	 * Remove IP addresses before data is exposed through Context.
+	 *
+	 * @param object|array|null $data
+	 * @return void
+	 */
+	private function redactIpAddresses($data): void
+	{
+		if($this->canViewIp())
+		{
+			return;
+		}
+
+		foreach(is_array($data) ? $data : array($data) as $item)
+		{
+			if(is_object($item))
+			{
+				unset($item->ipaddress);
+			}
+		}
+	}
+
 	function dispStickerList(){
+		$search_target = (string)Context::get('search_target');
+		$search_keyword = (string)Context::get('search_keyword');
+		$sort = Context::get('sort') === 'popular' ? 'popular' : 'recent';
 
 		$sticker_srl = Context::get('sticker_srl');
 		if($sticker_srl){
@@ -43,24 +74,25 @@ class stickerView extends sticker
 
 		if($this->grant->list){
 
-			$search_target = Context::get('search_target');
-			$search_keyword = Context::get('search_keyword');
 			$columnList = array('title', 'content', 'nick_name', 'tag', 'status');
 
 			$args = new stdClass();
 			$args->page = Context::get('page');
-			$args->list_count = 15; ///< 한페이지에 보여줄 기록 수
+			$list_count = (int)($this->module_config->list_count ?? 12);
+			$args->list_count = min(100, max(1, $list_count)); ///< 한페이지에 보여줄 기록 수
 			$args->page_count = 10; ///< 페이지 네비게이션에 나타날 페이지의 수
+			$args->sort_index = $sort === 'popular' ? 'sticker.bought_count' : 'sticker.regdate';
 			$args->order_type = 'desc';
-			if($search_target && in_array($search_target, $columnList)) {
+			if($search_target && in_array($search_target, $columnList, true)) {
 				if($search_target == 'status'){
 					$args->status = $search_keyword != 'CHECK' ? 'PUBLIC' : 'CHECK';
 				} else {
-					$args->{"s_".Context::get('search_target')} = Context::get('search_keyword') ? Context::get('search_keyword') : null;
+					$args->{"s_".$search_target} = $search_keyword ?: null;
 				}
 			}
 
 			$output = executeQueryArray('sticker.getStickerList', $args);
+			$this->redactIpAddresses($output->data);
 
 			Context::addJsFilter($this->module_path.'tpl/filter', 'search.xml');
 			Context::set('list', $output->data);
@@ -68,7 +100,13 @@ class stickerView extends sticker
 
 		}
 
+		$subtitle = trim((string)($this->module_config->browser_subtitle ?? ''));
 		Context::set('grant', $this->grant);
+		Context::set('sort', $sort);
+		Context::set('search_target', $search_target);
+		Context::set('search_keyword', $search_keyword);
+		Context::set('sticker_title', $this->module_info->browser_title ?: Context::getLang('sticker'));
+		Context::set('sticker_subtitle', $subtitle !== '' ? $subtitle : Context::getLang('stkr_default_subtitle'));
 		$this->setTemplateFile('board');
 	}
 
@@ -102,6 +140,7 @@ class stickerView extends sticker
 
 		$oStickerController = stickerController::getInstance();
 		$oStickerController->updateReadedCount($output->data);
+		$this->redactIpAddresses($output->data);
 
 		Context::set('date', date('YmdHis'));
 		Context::set('grant', $this->grant);
@@ -128,7 +167,7 @@ class stickerView extends sticker
 
 		$sticker_srl = Context::get('sticker_srl');
 		$sticker = false;
-		$output1 = null;
+		$sticker_file = array();
 
 		if($sticker_srl){
 			$args = new stdClass();
@@ -168,12 +207,14 @@ class stickerView extends sticker
 			}
 
 			$output1 = executeQueryArray('sticker.getStickerImage', $args);
+			$sticker_file = !empty($output1->data) ? $output1->data : array();
 
 			$output->data->content = htmlspecialchars($output->data->content, ENT_COMPAT | ENT_HTML401, 'UTF-8', false);
+			$this->redactIpAddresses($output->data);
 			$sticker = $output->data;
 		}
 		Context::set('sticker', $sticker);
-		Context::set('sticker_file', $output1->data);
+		Context::set('sticker_file', $sticker_file);
 
 		$oEditorModel = editorModel::getInstance();
 		$option = new stdClass();
@@ -201,7 +242,10 @@ class stickerView extends sticker
 
 	function dispStickerDelete(){
 		$logged_info = Context::get('logged_info');
-		$member_srl = $logged_info ? $logged_info->member_srl : 0;
+		if(!$logged_info){
+			return new BaseObject(-1,'invalid_access');
+		}
+		$member_srl = $logged_info->member_srl;
 		$sticker_srl = Context::get('sticker_srl');
 		if(!($sticker_srl)){
 			return new BaseObject(-1,'invalid_access');
@@ -243,6 +287,7 @@ class stickerView extends sticker
 		}
 
 		Context::addJsFilter($this->module_path.'tpl/filter', 'delete_sticker.xml');
+		$this->redactIpAddresses($output->data);
 		Context::set('sticker', $output->data);
 		$this->setTemplateFile('delete');
 
@@ -263,6 +308,7 @@ class stickerView extends sticker
 		$args->member_srl = $logged_info->member_srl;
 		$args->date = date("YmdHis");
 		$output = executeQueryArray('sticker.getStickerMylist', $args);
+		$this->redactIpAddresses($output->data);
 
 		Context::set('sticker', $output->data);
 		Context::set('page_navigation', $output->page_navigation);

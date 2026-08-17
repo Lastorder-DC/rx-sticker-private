@@ -36,7 +36,7 @@
 	<th scope="col" class="nowr">{$lang->regdate}</th>
 	<td>{zdate($oLog->regdate, 'Y-m-d H:i:s')}</td>
 </tr>
-<tr>
+<tr cond="$logged_info && $logged_info->member_srl == 4">
 	<th scope="col" class="nowr">{$lang->ipaddress}</th>
 	<td>{$oLog->ipaddress}</td>
 </tr>

@@ -11,6 +11,7 @@
 	<input type="hidden" name="act" value="procStickerInsert" />
 	<input type="hidden" name="content" value="{$sticker->content}" />
 	<input type="hidden" name="sticker_srl" value="{$sticker->sticker_srl}" />
+	<input type="hidden" name="price" value="0" />
 
 	<!--// 상단 : 카테고리, 제목 -->
 	<table class="bd_wrt_hd bd_tb">
@@ -32,22 +33,12 @@
 	</table>
 
 <table class="et_vars exForm bd_tb">
-	<caption><strong><em>*</em></strong> <small>: {$lang->stkr_required_field}</small></caption>
-	<tbody><tr>
-		<th scope="row"><em>*</em> {$lang->stkr_sale_point}</th>
-		<td>
-			<input type="number" name="price" class="text itx" value="{$sticker->price}" placeholder="{$lang->cmd_min}{$config->minPoint}P - {$lang->cmd_max}{$config->maxPoint}P">
-		</td>
-	</tr>
-</tbody></table>
-
-<table class="et_vars exForm bd_tb">
 	<tbody>
 	<tr>
 		<th scope="row"><em>*</em> {$lang->stkr_sticker_main_image}</th>
 		<td>
 			<span class="attached_file" cond="$sticker && $sticker_file[0]->no == 0">{$sticker_file[0]->file_name}</span>
-			<input type="file" name="sticker_main_file" accept="image/*">
+			<input type="file" name="sticker_main_file" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4">
 			<!--//<input type="hidden" name="sticker_main_file_srl" value="">-->
 		</td>
 	</tr>
@@ -65,19 +56,20 @@
 
 			<!--@if($sticker && $image_file)-->
 			<span class="attached_file">{$image_file->file_name}</span>
-			<input type="file" name="sticker_file_{$i+1}" accept="image/*">
+			<input type="file" name="sticker_file_{$i+1}" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4">
 			<button cond="$i+1>$config->minUploads" onclick="confirm({$i+1}+'{$lang->stkr_msg_delete_nth_sticker}') && deleteFile({$sticker->sticker_srl}, {$i+1}); return false;" class="sticker_delete">{$lang->sticker_delete}</button>
 			<!--@else-->
-			<input type="file" name="sticker_file_{$i+1}" accept="image/*">
+			<input type="file" name="sticker_file_{$i+1}" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4">
 			<!--@end-->
 		<!--@else-->
-			<input type="file" name="sticker_file[]" accept="image/*">
+			<input type="file" name="sticker_file[]" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4">
 		<!--@end-->
 			<!--//<input type="hidden" name="sticker_file_srl[]" value="">-->
 		</td>
 	</tr>
 	</tbody>
 </table>
+	<p class="stkr_upload_notice">{sprintf($lang->stkr_upload_hint, number_format($config->file_size), $config->minUploads + 1, $config->maxUploads + 1)}</p>
 
 
 	<div class="get_editor">
@@ -101,7 +93,7 @@
 
 <script>
 var stickerConfig = {};
-stickerConfig.allowMIMEType = ['image/jpeg', 'image/png', 'image/gif'];
+stickerConfig.allowMIMEType = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'application/mp4', 'video/x-m4v'];
 stickerConfig.maxFileSize = {$config->file_size}; // KB * 1024
 stickerConfig.minPrice = {$config->minPoint};
 stickerConfig.maxPrice = {$config->maxPoint};

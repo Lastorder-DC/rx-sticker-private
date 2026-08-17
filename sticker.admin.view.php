@@ -12,7 +12,54 @@ class stickerAdminView extends sticker
 		$oModuleModel = moduleModel::getInstance();
 		$this->module_info = $oModuleModel->getModuleInfoByMid("sticker");
 
+		$search_target = (string)Context::get('search_target');
+		$search_keyword = (string)Context::get('search_keyword');
+		if($search_target === 'ipaddress' && !$this->canViewIp())
+		{
+			$search_target = '';
+			$search_keyword = '';
+		}
+
+		Context::set('search_target', $search_target);
+		Context::set('search_keyword', $search_keyword);
+		Context::set('page', Context::get('page') ? intval(Context::get('page')) : 1);
+		Context::set('sort_index', (string)Context::get('sort_index'));
+		Context::set('order_type', (string)Context::get('order_type'));
+
 		$this->setTemplatePath($this->module_path.'tpl');
+	}
+
+	/**
+	 * Check whether the current member may view stored IP addresses.
+	 *
+	 * @return bool
+	 */
+	private function canViewIp(): bool
+	{
+		$logged_info = Context::get('logged_info');
+		return $logged_info && (int)$logged_info->member_srl === 4;
+	}
+
+	/**
+	 * Remove IP addresses before data is exposed through Context.
+	 *
+	 * @param object|array|null $data
+	 * @return void
+	 */
+	private function redactIpAddresses($data): void
+	{
+		if($this->canViewIp())
+		{
+			return;
+		}
+
+		foreach(is_array($data) ? $data : array($data) as $item)
+		{
+			if(is_object($item))
+			{
+				unset($item->ipaddress);
+			}
+		}
 	}
 
 
@@ -37,6 +84,7 @@ class stickerAdminView extends sticker
 		$args->list_count = 20;
 		$args->page = Context::get('page') ? Context::get('page') : 1;
 		$output = executeQueryArray('sticker.getStickerAdminList', $args);
+		$this->redactIpAddresses($output->data);
 
 		Context::set('list', $output->data);
 		Context::set('page_navigation', $output->page_navigation);
@@ -59,10 +107,16 @@ class stickerAdminView extends sticker
 		}
 
 		$output->data->sticker_editor = htmlspecialchars($output->data->content, ENT_COMPAT | ENT_HTML401, 'UTF-8', false);
+		$this->redactIpAddresses($output->data);
 
 		$oFileModel = fileModel::getInstance();
-		foreach($output1->data as &$value){
+		foreach((array)$output1->data as &$value){
 			$oFileInfo = $oFileModel->getFile($value->file_srl);
+			if(is_object($oFileInfo))
+			{
+				$oFileInfo = clone $oFileInfo;
+			}
+			$this->redactIpAddresses($oFileInfo);
 			$value->file_info = $oFileInfo;
 		}
 
@@ -105,16 +159,17 @@ class stickerAdminView extends sticker
 		$args->list_count = 20;
 		$args->page = Context::get('page') ? Context::get('page') : 1;
 		$output = executeQueryArray('sticker.getStickerBuyList'.($search_target == 'status' && $search_keyword == 'ACTIVE' ? "ByActive" : ""), $args);
+		$this->redactIpAddresses($output->data);
 
 		$oMemberModel = memberModel::getInstance();
 		$oStickerModel = stickerModel::getInstance();
-		foreach($output->data as &$value){
+		foreach((array)$output->data as &$value){
 			$oMember = $oMemberModel->getMemberInfoByMemberSrl($value->member_srl);
-			$value->nick_name = $oMember->nick_name;
+			$value->nick_name = $oMember ? $oMember->nick_name : '';
 
 			$oSticker = $oStickerModel->getSticker($value->sticker_srl);
-			$value->title = $oSticker->title;
-			$value->main_image = $oSticker->main_image;
+			$value->title = $oSticker ? $oSticker->title : '';
+			$value->main_image = $oSticker ? $oSticker->main_image : '';
 		}
 		Context::set('date', date("YmdHis"));
 		Context::set('list', $output->data);
@@ -138,10 +193,13 @@ class stickerAdminView extends sticker
 		if(!$oSticker){
 			return new BaseObject(-1,'msg_invalid_sticker');
 		}
+		$oSticker = clone $oSticker;
+		$this->redactIpAddresses($oSticker);
 
 		$oMemberModel = memberModel::getInstance();
 		$oMember = $oMemberModel->getMemberInfoByMemberSrl($output->data->member_srl);
-		$output->data->nick_name = $oMember->nick_name;
+		$output->data->nick_name = $oMember ? $oMember->nick_name : '';
+		$this->redactIpAddresses($output->data);
 
 		Context::set('date', date('YmdHis'));
 		Context::set('oBuyInfo', $output->data);
@@ -164,21 +222,86 @@ class stickerAdminView extends sticker
 		$args->list_count = 20;
 		$args->page = Context::get('page') ? Context::get('page') : 1;
 		$output = executeQueryArray('sticker.getStickerLogs', $args);
+		$this->redactIpAddresses($output->data);
 
 		$oMemberModel = memberModel::getInstance();
 		$oStickerModel = stickerModel::getInstance();
-		foreach($output->data as &$value){
+		foreach((array)$output->data as &$value){
 			$oMember = $oMemberModel->getMemberInfoByMemberSrl($value->member_srl);
-			$value->nick_name = $oMember->nick_name;
+			$value->nick_name = $oMember ? $oMember->nick_name : '';
 
 			$oSticker = $oStickerModel->getSticker($value->sticker_srl);
-			$value->title = $oSticker->title;
-			$value->main_image = $oSticker->main_image;
+			$value->title = $oSticker ? $oSticker->title : '';
+			$value->main_image = $oSticker ? $oSticker->main_image : '';
 		}
 		Context::set('list', $output->data);
 		Context::set('page_navigation', $output->page_navigation);
 
 		$this->setTemplateFile('log_list');
+	}
+
+	/**
+	 * Display the latest conversion state of each legacy GIF sticker file.
+	 *
+	 * @return BaseObject|null
+	 */
+	public function dispStickerAdminGifConversionLog()
+	{
+		$allowed_statuses = array('QUEUED', 'PROCESSING', 'SUCCESS', 'SKIPPED', 'FAILED');
+		$status = strtoupper((string)Context::get('conversion_status'));
+		if(!in_array($status, $allowed_statuses, true))
+		{
+			$status = '';
+		}
+		$sticker_srl = max(0, intval(Context::get('sticker_srl')));
+
+		$args = new stdClass();
+		$args->status = $status ?: null;
+		$args->sticker_srl = $sticker_srl ?: null;
+		$args->sort_index = 'last_update';
+		$args->order_type = 'desc';
+		$args->list_count = 30;
+		$args->page_count = 10;
+		$args->page = max(1, intval(Context::get('page')) ?: 1);
+		$output = executeQueryArray('sticker.getGifConversionLogs', $args);
+		if(!$output->toBool())
+		{
+			return $output;
+		}
+
+		foreach((array)$output->data as $item)
+		{
+			$status_key = 'stkr_gif_status_' . strtolower((string)$item->status);
+			$reason_key = 'stkr_gif_reason_' . strtolower((string)$item->reason);
+			$item->status_text = Context::getLang($status_key) ?: $item->status;
+			$item->reason_text = $item->reason ? (Context::getLang($reason_key) ?: $item->reason) : '';
+		}
+
+		$counts = array();
+		foreach($allowed_statuses as $count_status)
+		{
+			$count_output = executeQuery('sticker.getGifConversionLogCount', (object)array('status' => $count_status));
+			$counts[strtolower($count_status)] = intval($count_output->data->count ?? 0);
+		}
+		$count_output = executeQuery('sticker.getGifConversionLogCount');
+		$counts['total'] = intval($count_output->data->count ?? 0);
+		$gif_output = executeQuery('sticker.getGifStickerCount', (object)array('ext' => '.gif'));
+		$pending_output = executeQuery('sticker.getPendingGifStickerCount', (object)array('ext' => '.gif'));
+
+		Context::set('conversion_statuses', $allowed_statuses);
+		Context::set('conversion_status', $status);
+		Context::set('conversion_sticker_srl', $sticker_srl);
+		Context::set('conversion_counts', $counts);
+		Context::set('remaining_gif_count', intval($gif_output->data->count ?? 0));
+		Context::set('pending_gif_count', intval($pending_output->data->count ?? 0));
+		Context::set('is_ffmpeg', Rhymix\Modules\Sticker\Services\ImageProcessor::isFfmpegAvailable());
+		Context::set('is_queue_enabled', (bool)config('queue.enabled'));
+		Context::set('queue_driver', (string)config('queue.driver'));
+		Context::set('list', $output->data);
+		Context::set('page_navigation', $output->page_navigation);
+		Context::set('page', $args->page);
+
+		$this->setTemplateFile('gif_conversion_log');
 	}
 
 	function dispStickerAdminLogInfo(){
@@ -192,10 +315,16 @@ class stickerAdminView extends sticker
 		}
 		$oStickerModel = stickerModel::getInstance();
 		$oSticker = $oStickerModel->getSticker($output->data->sticker_srl);
+		if($oSticker)
+		{
+			$oSticker = clone $oSticker;
+		}
+		$this->redactIpAddresses($oSticker);
 
 		$oMemberModel = memberModel::getInstance();
 		$oMember = $oMemberModel->getMemberInfoByMemberSrl($output->data->member_srl);
-		$output->data->nick_name = $oMember->nick_name;
+		$output->data->nick_name = $oMember ? $oMember->nick_name : '';
+		$this->redactIpAddresses($output->data);
 
 		Context::set('oLog', $output->data);
 		Context::set('oSticker', $oSticker);
@@ -216,6 +345,13 @@ class stickerAdminView extends sticker
 			$oModuleModel = moduleModel::getInstance();
 			$module_info = $oModuleModel->getModuleInfoByMid('sticker');
 		}
+		$this->module_config->browser_subtitle = $this->module_config->browser_subtitle ?? '';
+		$this->module_config->quick_tags = $this->module_config->quick_tags ?? '';
+		$this->module_config->notify_message_type = $this->module_config->notify_message_type ?? 'text';
+		$this->module_config->gif2mp4 = $this->module_config->gif2mp4 ?? 'N';
+		$this->module_config->list_count = $this->module_config->list_count ?? 12;
+		Context::set('is_ffmpeg', Rhymix\Modules\Sticker\Services\ImageProcessor::isFfmpegAvailable());
+		Context::set('is_queue_enabled', (bool)config('queue.enabled'));
 
 		Context::set('module_info', $module_info);
 		Context::set('config', $this->module_config);

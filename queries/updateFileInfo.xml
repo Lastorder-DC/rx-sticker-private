@@ -7,6 +7,10 @@
 		<column name="upload_target_type" var="upload_target_type" default="sti" notnull="notnull" />
 		<column name="uploaded_filename" var="uploaded_filename" notnull="notnull" minlength="1" maxlength="250" />
 		<column name="source_filename" var="source_filename" notnull="notnull" minlength="1" maxlength="250" />
+		<column name="thumbnail_filename" var="thumbnail_filename" />
+		<column name="mime_type" var="mime_type" />
+		<column name="original_type" var="original_type" />
+		<column name="direct_download" var="direct_download" />
 	</columns>
 	<conditions>
 		<condition operation="equal" column="file_srl" var="file_srl" filter="number" notnull="notnull" />

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skin version="0.2">
+	<title xml:lang="ko">모던 Blade 스킨</title>
+	<title xml:lang="en">Modern Blade skin</title>
+	<description xml:lang="ko">Waterticket 스킨을 기반으로 개인 차단, WebP, MP4 및 다국어 지원을 추가한 선택형 스킨입니다.</description>
+	<description xml:lang="en">An optional Blade skin based on Waterticket with personal blocking, WebP, MP4, and localization support.</description>
+	<version>1.1.1-modified</version>
+	<date>2026-08-17</date>
+	<author email_address="waterticket@potatosoft.kr" link="https://potatosoft.kr">
+		<name xml:lang="ko">Waterticket</name>
+		<name xml:lang="en">Waterticket</name>
+	</author>
+	<license>GPLv2</license>
+	<extra_vars>
+		<title xml:lang="ko">목록 화면 설정</title>
+		<title xml:lang="en">List display settings</title>
+		<var name="shop_name" type="text">
+			<title xml:lang="ko">상단 타이틀</title>
+			<title xml:lang="en">Header title</title>
+			<description xml:lang="ko">비워 두면 모듈 브라우저 제목을 사용합니다.</description>
+			<description xml:lang="en">Leave blank to use the module browser title.</description>
+		</var>
+		<var name="notice" type="textarea">
+			<title xml:lang="ko">제목 하단 설명</title>
+			<title xml:lang="en">Description below title</title>
+			<description xml:lang="ko">HTML 및 Rhymix 위젯 코드를 사용할 수 있습니다. 비워 두면 모듈의 하단 설명을 사용합니다.</description>
+			<description xml:lang="en">HTML and Rhymix widget code are supported. Leave blank to use the module subtitle.</description>
+		</var>
+		<var name="sb_width" type="text" default="160">
+			<title xml:lang="ko">스티커 샘플 가로폭</title>
+			<title xml:lang="en">Sticker sample width</title>
+			<description xml:lang="ko">목록의 스티커 샘플 가로폭입니다. 기본값은 160px입니다.</description>
+			<description xml:lang="en">Sticker sample width in the list. The default is 160px.</description>
+		</var>
+		<var name="sb_height" type="text" default="160">
+			<title xml:lang="ko">스티커 샘플 세로폭</title>
+			<title xml:lang="en">Sticker sample height</title>
+			<description xml:lang="ko">목록의 스티커 샘플 세로폭입니다. 기본값은 160px입니다.</description>
+			<description xml:lang="en">Sticker sample height in the list. The default is 160px.</description>
+		</var>
+		<var name="cut" type="text" default="25">
+			<title xml:lang="ko">제목 글자 수</title>
+			<title xml:lang="en">Title length</title>
+			<description xml:lang="ko">목록에서 표시할 스티커 제목의 최대 글자 수입니다. 기본값은 25자입니다.</description>
+			<description xml:lang="en">Maximum sticker title length in the list. The default is 25 characters.</description>
+		</var>
+		<var name="seller" type="select" default="Y">
+			<title xml:lang="ko">제작자 표기</title>
+			<title xml:lang="en">Show creator</title>
+			<options value="Y">
+				<title xml:lang="ko">표기</title>
+				<title xml:lang="en">Show</title>
+			</options>
+			<options value="N">
+				<title xml:lang="ko">표기 안 함</title>
+				<title xml:lang="en">Hide</title>
+			</options>
+		</var>
+	</extra_vars>
+</skin>

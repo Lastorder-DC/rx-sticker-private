@@ -35,7 +35,7 @@ function deleteBlockSticker(sticker_srl){
 			<tbody>
 				<tr loop="$sticker => $no, $sticker">
 					<td><span>{$no}</span></td>
-					<td><a href="{getUrl('', 'mid', 'sticker', 'sticker_srl', $sticker->sticker_srl)}"><img src="{$sticker->main_image}" class="sticker_sample"><span class="sticker_title">{$sticker->title}</span></a></td>
+					<td><a href="{getUrl('', 'mid', 'sticker', 'sticker_srl', $sticker->sticker_srl)}"><img src="{$sticker->main_image}" cond="!preg_match('/\.mp4$/i', $sticker->main_image)" class="sticker_sample"><video src="{$sticker->main_image}" poster="{preg_replace('/\.mp4$/i', '.webp', $sticker->main_image)}" cond="preg_match('/\.mp4$/i', $sticker->main_image)" class="sticker_sample" autoplay="autoplay" muted="muted" onended="this.play()" playsinline="playsinline"></video><span class="sticker_title">{$sticker->title}</span></a></td>
 					<td><a href="javascript:;" class="stk_lnk" onclick="deleteBlockSticker('{$sticker->sticker_srl}'); return false;">{$lang->stkr_unblock}</a></td>
 				</tr>
 				<tr cond="!$sticker">

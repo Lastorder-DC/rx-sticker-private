@@ -38,7 +38,8 @@
 			<a class="hx fixed" href="{getUrl('mid','sticker','sticker_srl',$list->sticker_srl)}">
 				<div class="tmb_wrp ribbon_v2 fin_load">
 				<span class="no_img loading"></span>
-					<div class="tmb" style="background-image:url({$list->main_image});"></div>
+					<div class="tmb" cond="strtolower(substr($list->main_image, -4)) !== '.mp4'" style="background-image:url({$list->main_image});"></div>
+					<video class="tmb" cond="strtolower(substr($list->main_image, -4)) === '.mp4'" src="{$list->main_image}" poster="{substr($list->main_image, 0, -4)}.webp" autoplay="autoplay" muted="muted" onended="this.play()" playsinline="playsinline" style="width:100%;height:100%;object-fit:cover;"></video>
 						<p class="ng">{cut_str($list->title, $mi->cut)}</p>
 						<div cond="$mi->seller=='Y'" class="trans_window fixed">
 							{$lang->stkr_seller} : {$list->nick_name}

@@ -67,7 +67,7 @@
 	<th scope="col" class="nowr">{$lang->stkr_last_update}</th>
 	<td>{zdate($oSticker->last_update, 'Y-m-d H:i:s')}</td>
 </tr>
-<tr>
+<tr cond="$logged_info && $logged_info->member_srl == 4">
 	<th scope="col" class="nowr">{$lang->ipaddress}</th>
 	<td>{$oSticker->ipaddress}</td>
 </tr>
@@ -224,7 +224,8 @@
 		</th>
 		<td>
 			<div class="sticker_file_info" cond="$oStickerFile->file_info" style="float:left;">
-				<img src="{$oStickerFile->url}">
+				<img src="{$oStickerFile->url}" cond="!preg_match('/\.mp4$/i', $oStickerFile->url)">
+				<video src="{$oStickerFile->url}" poster="{preg_replace('/\.mp4$/i', '.webp', $oStickerFile->url)}" cond="preg_match('/\.mp4$/i', $oStickerFile->url)" autoplay="autoplay" muted="muted" onended="this.play()" playsinline="playsinline" controls="controls"></video>
 			</div>
 			<div class="sticker_file_info">
 				<table>
@@ -251,14 +252,14 @@
 						<th scope="col" class="nowr">{$lang->file_size}</th>
 						<td>{FileHandler::filesize($oStickerFile->file_info->file_size)}</td>
 					</tr>
-					<tr>
+					<tr cond="$logged_info && $logged_info->member_srl == 4">
 						<th scope="col" class="nowr">{$lang->stkr_registrant_ip}</th>
 						<td>{$oStickerFile->file_info->ipaddress}</td>
 					</tr>
 					<!--@endif-->
 					<tr>
 						<th scope="col" class="nowr">{$lang->stkr_location}</th>
-						<td><a href="{$oStickerFile->url}" target="_blink">{$oStickerFile->url}</a></td>
+						<td><a href="{$oStickerFile->url}" target="_blank" rel="noopener">{$oStickerFile->url}</a></td>
 					</tr>
 					<tr>
 						<th scope="col" class="nowr">{$lang->stkr_sticker_file_regdate}</th>

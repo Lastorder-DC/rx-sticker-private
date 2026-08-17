@@ -1,0 +1,15 @@
+<query id="updateStickerStatus" action="update">
+	<tables>
+		<table name="sticker" />
+	</tables>
+	<columns>
+		<column name="status" var="status" notnull="notnull" />
+		<column name="last_update" var="last_update" filter="number" />
+		<column name="last_updater" var="last_updater" />
+		<column name="list_order" var="list_order" notnull="notnull" />
+	</columns>
+	<conditions>
+		<condition operation="equal" column="sticker_srl" var="sticker_srl" filter="number" notnull="notnull" />
+		<condition operation="equal" column="status" var="current_status" notnull="notnull" pipe="and" />
+	</conditions>
+</query>

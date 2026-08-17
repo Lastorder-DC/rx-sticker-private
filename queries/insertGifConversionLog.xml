@@ -1,0 +1,18 @@
+<query id="insertGifConversionLog" action="insert">
+	<tables>
+		<table name="sticker_gif_conversion_log" />
+	</tables>
+	<columns>
+		<column name="sticker_file_srl" var="sticker_file_srl" filter="number" notnull="notnull" />
+		<column name="sticker_srl" var="sticker_srl" filter="number" notnull="notnull" />
+		<column name="file_srl" var="file_srl" filter="number" notnull="notnull" />
+		<column name="status" var="status" maxlength="20" notnull="notnull" />
+		<column name="reason" var="reason" maxlength="40" />
+		<column name="original_url" var="original_url" maxlength="250" notnull="notnull" />
+		<column name="result_url" var="result_url" maxlength="250" />
+		<column name="original_size" var="original_size" filter="number" notnull="notnull" />
+		<column name="result_size" var="result_size" filter="number" notnull="notnull" />
+		<column name="regdate" var="regdate" filter="number" notnull="notnull" />
+		<column name="last_update" var="last_update" filter="number" notnull="notnull" />
+	</columns>
+</query>

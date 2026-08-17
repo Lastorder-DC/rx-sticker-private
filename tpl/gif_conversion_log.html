@@ -1,0 +1,127 @@
+<include target="_header.html" />
+
+<div cond="$XE_VALIDATOR_MESSAGE && $XE_VALIDATOR_ID == ''" class="message {$XE_VALIDATOR_MESSAGE_TYPE}">
+	<p>{$XE_VALIDATOR_MESSAGE}</p>
+</div>
+
+<div class="x_alert x_alert-info">
+	<strong>{$lang->stkr_gif_conversion_environment}</strong>
+	{$lang->stkr_gif_ffmpeg}: <strong>{$is_ffmpeg ? $lang->stkr_available : $lang->stkr_unavailable}</strong>,
+	Queue: <strong>{$is_queue_enabled ? $queue_driver : $lang->stkr_unavailable}</strong>
+</div>
+
+<div class="x_well" style="display:flex; flex-wrap:wrap; gap:18px; margin-bottom:16px">
+	<span>{$lang->stkr_gif_remaining}: <strong>{number_format($remaining_gif_count)}</strong></span>
+	<span>{$lang->stkr_gif_pending}: <strong>{number_format($pending_gif_count)}</strong></span>
+	<span>{$lang->stkr_gif_status_queued}: <strong>{number_format($conversion_counts['queued'])}</strong></span>
+	<span>{$lang->stkr_gif_status_processing}: <strong>{number_format($conversion_counts['processing'])}</strong></span>
+	<span>{$lang->stkr_gif_status_success}: <strong>{number_format($conversion_counts['success'])}</strong></span>
+	<span>{$lang->stkr_gif_status_skipped}: <strong>{number_format($conversion_counts['skipped'])}</strong></span>
+	<span>{$lang->stkr_gif_status_failed}: <strong>{number_format($conversion_counts['failed'])}</strong></span>
+</div>
+
+<div class="x_clearfix" style="margin-bottom:16px">
+	<form action="./" method="post" class="x_pull-left" onsubmit="return confirm('{$lang->stkr_confirm_migrate_gif2mp4|escapejs}');">
+		<input type="hidden" name="module" value="sticker" />
+		<input type="hidden" name="act" value="procStickerAdminMigrateGifToMp4" />
+		<input type="hidden" name="success_return_url" value="{getUrl('', 'module', 'admin', 'act', 'dispStickerAdminGifConversionLog')}" />
+		<label for="gif_log_batch_size">{$lang->stkr_migration_batch_size}</label>
+		<input type="number" name="batch_size" id="gif_log_batch_size" value="100" min="1" max="100" style="width:70px" />
+		<button type="submit" class="x_btn x_btn-primary" disabled="disabled"|cond="!$is_ffmpeg || !$is_queue_enabled">{$lang->stkr_migrate_gif2mp4}</button>
+	</form>
+	<a class="x_btn x_pull-right" href="{getUrl('', 'module', 'admin', 'act', 'dispStickerAdminConfig')}">{$lang->stkr_module_settings}</a>
+</div>
+
+<form action="./" method="get" class="x_form-inline" style="margin-bottom:12px">
+	<input type="hidden" name="module" value="admin" />
+	<input type="hidden" name="act" value="dispStickerAdminGifConversionLog" />
+	<label for="conversion_status">{$lang->status}</label>
+	<select name="conversion_status" id="conversion_status">
+		<option value="">{$lang->all}</option>
+		<option loop="$conversion_statuses => $status" value="{$status}" selected="selected"|cond="$conversion_status == $status">{Context::getLang('stkr_gif_status_' . strtolower($status))}</option>
+	</select>
+	<label for="conversion_sticker_srl">{$lang->stkr_log_sticker_srl}</label>
+	<input type="number" name="sticker_srl" id="conversion_sticker_srl" min="1" value="{$conversion_sticker_srl ?: ''}" />
+	<button type="submit" class="x_btn">{$lang->cmd_search}</button>
+	<a href="{getUrl('', 'module', 'admin', 'act', 'dispStickerAdminGifConversionLog')}" class="x_btn">{$lang->cmd_cancel}</a>
+</form>
+
+
+<style>
+.stkr-gif-log-wrap{overflow-x:auto}
+.stkr-gif-log{width:100%;min-width:1100px;table-layout:fixed}
+.stkr-gif-log__path,.stkr-gif-log__reason{white-space:normal;word-break:break-all;overflow-wrap:anywhere}
+.stkr-gif-log__path code{display:block;max-width:100%;white-space:normal!important;word-break:break-all;overflow-wrap:anywhere;line-height:1.45}
+</style>
+
+<div class="stkr-gif-log-wrap">
+	<table class="x_table x_table-striped x_table-hover stkr-gif-log">
+		<colgroup>
+			<col style="width:7%" />
+			<col style="width:7%" />
+			<col style="width:9%" />
+			<col style="width:32%" />
+			<col style="width:10%" />
+			<col style="width:14%" />
+			<col style="width:14%" />
+			<col style="width:7%" />
+		</colgroup>
+		<thead>
+			<tr>
+				<th scope="col">{$lang->status}</th>
+				<th scope="col">{$lang->stkr_log_sticker_srl}</th>
+				<th scope="col">{$lang->stkr_gif_file_srl}</th>
+				<th scope="col">{$lang->stkr_gif_source_result}</th>
+				<th scope="col">{$lang->stkr_gif_file_size}</th>
+				<th scope="col">{$lang->stkr_gif_result_reason}</th>
+				<th scope="col">{$lang->last_update}</th>
+				<th scope="col">{$lang->stkr_retry}</th>
+			</tr>
+		</thead>
+		<tbody>
+		<tr cond="!count($list)">
+			<td colspan="8">{$lang->msg_stkr_no_gif_conversion_log}</td>
+		</tr>
+		<tr loop="$list => $item">
+			<td class="nowr">
+				<span class="x_label x_label-success" cond="$item->status == 'SUCCESS'">{$item->status_text}</span>
+				<span class="x_label x_label-important" cond="$item->status == 'FAILED'">{$item->status_text}</span>
+				<span class="x_label x_label-warning" cond="$item->status == 'SKIPPED'">{$item->status_text}</span>
+				<span class="x_label x_label-info" cond="$item->status == 'QUEUED' || $item->status == 'PROCESSING'">{$item->status_text}</span>
+			</td>
+			<td class="nowr"><a href="{getUrl('', 'module', 'admin', 'act', 'dispStickerAdminStickerView', 'sticker_srl', $item->sticker_srl)}">{$item->sticker_srl}</a></td>
+			<td class="nowr">{$item->sticker_file_srl}<br /><small>file: {$item->file_srl}</small></td>
+			<td class="stkr-gif-log__path">
+				<code>{htmlspecialchars($item->original_url, ENT_COMPAT | ENT_HTML401, 'UTF-8', false)}</code>
+				<block cond="$item->result_url"><br />→ <code>{htmlspecialchars($item->result_url, ENT_COMPAT | ENT_HTML401, 'UTF-8', false)}</code></block>
+			</td>
+			<td class="nowr">{FileHandler::filesize($item->original_size)}<block cond="$item->result_size"><br />→ {FileHandler::filesize($item->result_size)}</block></td>
+			<td class="stkr-gif-log__reason">{$item->reason_text}</td>
+			<td class="nowr">{zdate($item->last_update, 'Y.m.d H:i:s')}</td>
+			<td class="nowr">
+				<form cond="$item->status == 'QUEUED' || $item->status == 'PROCESSING' || $item->status == 'FAILED'" action="./" method="post" onsubmit="return confirm('{$lang->stkr_confirm_retry_gif_conversion|escapejs}');">
+					<input type="hidden" name="module" value="sticker" />
+					<input type="hidden" name="act" value="procStickerAdminRetryGifConversion" />
+					<input type="hidden" name="sticker_file_srl" value="{$item->sticker_file_srl}" />
+					<input type="hidden" name="success_return_url" value="{getUrl('', 'module', 'admin', 'act', 'dispStickerAdminGifConversionLog', 'conversion_status', $conversion_status, 'sticker_srl', $conversion_sticker_srl, 'page', $page)}" />
+					<button type="submit" class="x_btn x_btn-small">{$lang->stkr_retry}</button>
+				</form>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</div>
+
+<form cond="$page_navigation" action="./" class="x_pagination x_pull-left">
+	<input type="hidden" name="module" value="admin" />
+	<input type="hidden" name="act" value="dispStickerAdminGifConversionLog" />
+	<input cond="$conversion_status" type="hidden" name="conversion_status" value="{$conversion_status}" />
+	<input cond="$conversion_sticker_srl" type="hidden" name="sticker_srl" value="{$conversion_sticker_srl}" />
+	<ul>
+		<li class="x_disabled"|cond="$page == 1"><a href="{getUrl('page', '')}">&laquo; {$lang->first_page}</a></li>
+		<!--@while($page_no = $page_navigation->getNextPage())-->
+		<li class="x_active"|cond="$page_no == $page"><a href="{getUrl('page', $page_no)}">{$page_no}</a></li>
+		<!--@end-->
+		<li class="x_disabled"|cond="$page == $page_navigation->last_page"><a href="{getUrl('page', $page_navigation->last_page)}">{$lang->last_page} &raquo;</a></li>
+	</ul>
+</form>

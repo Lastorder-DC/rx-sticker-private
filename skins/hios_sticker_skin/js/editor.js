@@ -15,7 +15,8 @@
 				return false;
 			}
 
-			if($.inArray(file.type, allowMIMEType) === -1){
+			var genericMp4 = (!file.type || file.type === 'application/octet-stream') && /\.mp4$/i.test(file.name);
+			if($.inArray(file.type, allowMIMEType) === -1 && !genericMp4){
 				alert('지원하지 않는 파일 형식입니다.');
 				return false;
 			}

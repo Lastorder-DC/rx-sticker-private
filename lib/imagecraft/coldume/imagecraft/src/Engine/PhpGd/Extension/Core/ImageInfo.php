@@ -32,7 +32,9 @@ class ImageInfo
     {
         $fp = fopen($stream, 'r');
         $info = $this->resolveFromFilePointer($fp);
-        @fclose($fp);
+        if (is_resource($fp)) {
+            fclose($fp);
+        }
 
         return $info;
     }
@@ -46,7 +48,9 @@ class ImageInfo
         $fp = fopen('php://temp', 'r+');
         fwrite($fp, $contents);
         $info = $this->resolveFromFilePointer($fp);
-        @fclose($fp);
+        if (is_resource($fp)) {
+            fclose($fp);
+        }
 
         return $info;
     }

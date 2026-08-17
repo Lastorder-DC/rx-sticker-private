@@ -27,17 +27,18 @@
 
 	<!--// 제목 -->
 	<div class="sticker_field sticker_title_field">
-		<input type="text" name="title" class="sticker_title_input" id="postTitle" placeholder="스티커 제목" value="{$sticker->title}" />
+		<input type="text" name="title" class="sticker_title_input" id="postTitle" placeholder="{$lang->stkr_title_placeholder}" value="{$sticker->title}" />
 	</div>
 
 	<!--// 스티커 업로드 -->
 	<div class="sticker_section">
-		<h3 class="sticker_section_title">스티커 업로드</h3>
+		<h3 class="sticker_section_title">{$lang->stkr_upload}</h3>
 		<div id="stickerUploadZone" class="sticker_upload_zone">
 			<div id="stickerGrid" class="sticker_grid">
 				<!--// 미리보기 타일은 JS가 동적으로 삽입 -->
 				<div id="stickerPlaceholder" class="sticker_placeholder">
-					<span class="sticker_placeholder_text">이미지를 드래그하거나 클릭하여 업로드</span>
+					<span class="sticker_placeholder_text">{$lang->stkr_upload_guide}</span>
+					<span class="sticker_placeholder_hint">{sprintf($lang->stkr_upload_hint, number_format($config->file_size), $config->minUploads + 1, $config->maxUploads + 1)}</span>
 					<span class="sticker_counter">
 						현재 <span id="stickerCurrentCount">0</span>{$lang->stkr_uploaded_count_suffix}
 						/
@@ -46,13 +47,13 @@
 				</div>
 			</div>
 		</div>
-		<input type="file" id="hiddenMultiFileInput" multiple accept="image/*" style="display:none" />
+		<input type="file" id="hiddenMultiFileInput" multiple accept="image/jpeg,image/png,image/gif,image/webp,video/mp4" style="display:none" />
 		<div id="dynamicFileInputs" style="display:none"></div>
 	</div>
 
 	<!--// 스티커 설명 (에디터) -->
 	<div class="sticker_section">
-		<h3 class="sticker_section_title">스티커 설명</h3>
+		<h3 class="sticker_section_title">{$lang->stkr_description}</h3>
 		<div class="get_editor sticker_editor_wrap">
 			{$editor}
 		</div>
@@ -73,7 +74,7 @@
 <script>
 //<![CDATA[
 var stickerConfig = {};
-stickerConfig.allowMIMEType = ['image/jpeg', 'image/png', 'image/gif'];
+stickerConfig.allowMIMEType = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'application/mp4', 'video/x-m4v'];
 stickerConfig.maxFileSize = {$config->file_size}; // KB
 stickerConfig.minPrice = {$config->minPoint};
 stickerConfig.maxPrice = {$config->maxPoint};

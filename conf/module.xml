@@ -3,67 +3,92 @@
 	<grants>
 		<grant name="list" default="guest">
 			<title xml:lang="ko">목록</title>
+			<title xml:lang="en">List</title>
 		</grant>
 		<grant name="view" default="guest">
 			<title xml:lang="ko">열람</title>
+			<title xml:lang="en">View</title>
 		</grant>
 		<grant name="upload" default="member">
 			<title xml:lang="ko">스티커 등록</title>
+			<title xml:lang="en">Upload stickers</title>
 		</grant>
 		<grant name="buy" default="member">
 			<title xml:lang="ko">구매 권한</title>
+			<title xml:lang="en">Purchase stickers</title>
 		</grant>
 		<grant name="free" default="manager">
 			<title xml:lang="ko">무료 구입</title>
+			<title xml:lang="en">Purchase for free</title>
 		</grant>
 	</grants>
-	<permissions />
 	<actions>
+		<action name="getCommentStickerList" type="model" permission="guest" />
+		<action name="getStickerElemList" type="model" permission="guest" />
 
-		<action name="getCommentStickerList" type="model" />
-		<action name="getStickerElemList" type="model" />
+		<action name="dispStickerList" type="view" permission="list" index="true">
+			<route route="$sticker_srl:int" priority="100" />
+			<route route="page/$page:int" priority="10" />
+		</action>
+		<action name="dispStickerWrite" type="view" permission="upload" meta-noindex="true">
+			<route route="write" />
+			<route route="$sticker_srl:int/edit" />
+		</action>
+		<action name="dispStickerDelete" type="view" permission="member" route="$sticker_srl:int/delete" meta-noindex="true" />
+		<action name="dispStickerMylist" type="view" permission="member" route="mylist" meta-noindex="true" />
+		<action name="dispStickerMyBlock" type="view" permission="member" route="myblock" meta-noindex="true" />
 
-		<action name="dispStickerList" type="view" index="true"/>
-		<action name="dispStickerWrite" type="view" />
-		<action name="dispStickerDelete" type="view" />
-		<action name="dispStickerMylist" type="view" />
-		<action name="dispStickerMyBlock" type="view" />
+		<action name="procStickerInsert" type="controller" permission="upload" />
+		<action name="procStickerCommentInsert" type="controller" permission="member" />
+		<action name="procStickerDelete" type="controller" permission="member" />
+		<action name="procStickerFileDelete" type="controller" permission="member" />
+		<action name="procStickerBuy" type="controller" permission="buy" />
+		<action name="procStickerBuyDelete" type="controller" permission="member" />
+		<action name="procStickerBuyOrderChange" type="controller" permission="member" />
+		<action name="procStickerGetStickerSrl" type="controller" permission="guest" />
+		<action name="procStickerBlockInsert" type="controller" permission="member" />
+		<action name="procStickerBlockDelete" type="controller" permission="member" />
+		<action name="procStickerPublish" type="controller" permission="manager" ruleset="publishSticker" />
 
-		<action name="procStickerInsert" type="controller" />
-		<action name="procStickerCommentInsert" type="controller" />
-		<action name="procStickerDelete" type="controller" />
-		<action name="procStickerFileDelete" type="controller" />
-		<action name="procStickerBuy" type="controller" />
-		<action name="procStickerBuyDelete" type="controller" />
-		<action name="procStickerBuyOrderChange" type="controller" />
-		<action name="procStickerGetStickerSrl" type="controller" />
-		<action name="procStickerBlockInsert" type="controller" />
-		<action name="procStickerBlockDelete" type="controller" />
+		<action name="dispStickerAdminStickerList" type="view" permission="root" admin_index="true" />
+		<action name="dispStickerAdminStickerView" type="view" permission="root" />
+		<action name="dispStickerAdminBuyList" type="view" permission="root" />
+		<action name="dispStickerAdminBuyInfo" type="view" permission="root" />
+		<action name="dispStickerAdminConfig" type="view" permission="root" />
+		<action name="dispStickerAdminCategoryInfo" type="view" permission="root" />
+		<action name="dispStickerAdminGrantInfo" type="view" permission="root" />
+		<action name="dispStickerAdminLogList" type="view" permission="root" />
+		<action name="dispStickerAdminLogInfo" type="view" permission="root" />
+		<action name="dispStickerAdminGifConversionLog" type="view" permission="root" />
+		<action name="dispStickerAdminDesign" type="view" permission="root" />
+		<action name="dispStickerAdminSkinInfo" type="view" permission="root" />
+		<action name="dispStickerAdminMobileSkinInfo" type="view" permission="root" />
 
-		<action name="dispStickerAdminStickerList" type="view" admin_index="true" />
-		<action name="dispStickerAdminStickerView" type="view" />
-		<action name="dispStickerAdminBuyList" type="view" />
-		<action name="dispStickerAdminBuyInfo" type="view" />
-		<action name="dispStickerAdminConfig" type="view" />
-		<action name="dispStickerAdminCategoryInfo" type="view" />
-		<action name="dispStickerAdminGrantInfo" type="view" />
-		<action name="dispStickerAdminLogList" type="view" />
-		<action name="dispStickerAdminLogInfo" type="view" />
-		<action name="dispStickerAdminDesign" type="view" />
-		<action name="dispStickerAdminSkinInfo" type="view" />
-		<action name="dispStickerAdminMobileSkinInfo" type="view" />
- 
-		<action name="procStickerAdminConfig" type="controller" />
-		<action name="procStickerAdminDesign" type="controller" />
-		<action name="procStickerAdminUpdate" type="controller" />
-		<action name="procStickerAdminDelete" type="controller" />
-		<action name="procStickerAdminBuyUpdate" type="controller" />
-		<action name="procStickerAdminBuyDelete" type="controller" />
-		<action name="procStickerAdminLogClear" type="controller" />
+		<action name="procStickerAdminConfig" type="controller" permission="root" />
+		<action name="procStickerAdminMigrateGifToMp4" type="controller" permission="root" />
+		<action name="procStickerAdminRetryGifConversion" type="controller" permission="root" />
+		<action name="procStickerAdminDesign" type="controller" permission="root" />
+		<action name="procStickerAdminUpdate" type="controller" permission="root" />
+		<action name="procStickerAdminDelete" type="controller" permission="root" />
+		<action name="procStickerAdminBuyUpdate" type="controller" permission="root" />
+		<action name="procStickerAdminBuyDelete" type="controller" permission="root" />
+		<action name="procStickerAdminLogClear" type="controller" permission="root" />
 	</actions>
+	<eventHandlers>
+		<eventHandler after="member.deleteMember" class="controller" method="triggerDeleteMember" />
+		<eventHandler after="member.getMemberMenu" class="controller" method="triggerMemberMenu" />
+		<eventHandler before="document.insertDocument" class="controller" method="triggerBeforeInsertDocument" />
+		<eventHandler before="document.updateDocument" class="controller" method="triggerBeforeUpdateDocument" />
+		<eventHandler before="comment.insertComment" class="controller" method="triggerBeforeInsertComment" />
+		<eventHandler before="comment.updateComment" class="controller" method="triggerBeforeUpdateComment" />
+		<eventHandler before="moduleHandler.init" class="controller" method="triggerBeforeModuleInit" />
+		<eventHandler before="display" class="controller" method="triggerBeforeDisplay" />
+		<eventHandler before="ncenterlite._insertNotify" class="Controllers\EventHandlers" method="beforeInsertNotify" />
+	</eventHandlers>
 	<menus>
 		<menu name="sticker" type="all">
 			<title xml:lang="ko">스티커</title>
+			<title xml:lang="en">Sticker</title>
 		</menu>
 	</menus>
 </module>

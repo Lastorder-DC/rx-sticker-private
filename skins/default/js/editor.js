@@ -66,10 +66,20 @@
 			tile.draggable = true;
 			tile.dataset.idx = idx;
 
-			var img = document.createElement('img');
-			img.src = item.dataUrl || item.url;
-			img.alt = item.fileName || '';
-			tile.appendChild(img);
+			var isVideo = (item.file && (item.file.type === 'video/mp4' || item.file.type === 'application/mp4' || item.file.type === 'video/x-m4v')) || /\.mp4$/i.test(item.fileName || item.url || '');
+			var media = document.createElement(isVideo ? 'video' : 'img');
+			media.src = item.dataUrl || item.url;
+			if (isVideo) {
+				media.autoplay = true;
+				media.defaultMuted = true;
+				media.muted = true;
+				media.loop = true;
+				media.playsInline = true;
+				media.preload = 'metadata';
+			} else {
+				media.alt = item.fileName || '';
+			}
+			tile.appendChild(media);
 
 			var badge = document.createElement('div');
 			badge.className = 'sticker_tile_badge';
@@ -151,11 +161,11 @@
 		var files = Array.from(fileList);
 		var remain = state.maxFiles - state.items.length;
 		if (remain <= 0) {
-			alert('최대 ' + state.maxFiles + '장까지 업로드 가능합니다.');
+			alert('최대 ' + state.maxFiles + '개 파일까지 업로드 가능합니다.');
 			return;
 		}
 		if (files.length > remain) {
-			alert('남은 업로드 가능 수량(' + remain + '장)을 초과합니다. 앞에서 ' + remain + '장만 추가됩니다.');
+			alert('남은 업로드 가능 수량(' + remain + '개)을 초과합니다. 앞에서 ' + remain + '개 파일만 추가됩니다.');
 			files = files.slice(0, remain);
 		}
 
@@ -166,8 +176,9 @@
 				alert("'" + f.name + "' 파일의 용량이 너무 큽니다. (최대 " + state.maxFileSize + 'KB)');
 				continue;
 			}
-			if (state.allowedMimeTypes.indexOf(f.type) === -1) {
-				alert("'" + f.name + "' 파일은 지원하지 않는 형식입니다.\n(허용: " + state.allowedMimeTypes.join(', ') + ')');
+			var genericMp4 = (!f.type || f.type === 'application/octet-stream') && /\.mp4$/i.test(f.name);
+			if (state.allowedMimeTypes.indexOf(f.type) === -1 && !genericMp4) {
+				alert("'" + f.name + "' 파일은 지원하지 않는 형식입니다.\n(허용: JPG, PNG, GIF, WebP, MP4)");
 				continue;
 			}
 			validFiles.push(f);

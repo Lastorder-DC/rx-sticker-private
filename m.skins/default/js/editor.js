@@ -13,7 +13,8 @@
 				$(this).val('');
 				return false;
 			}
-			if($.inArray($this.type, allowMIMEType) == -1){
+			var genericMp4 = (!$this.type || $this.type === 'application/octet-stream') && /\.mp4$/i.test($this.name);
+			if($.inArray($this.type, allowMIMEType) == -1 && !genericMp4){
 				alert('지원하지 않는 파일 형식입니다.');
 				$(this).val('');
 				return false;

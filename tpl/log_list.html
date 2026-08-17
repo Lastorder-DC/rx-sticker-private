@@ -30,7 +30,7 @@
 				<th scope="col" class="nowr">{$lang->nick_name}</th>
 				<th scope="col" class="nowr">{$lang->stkr_log_type}</th>
 				<th scope="col" class="nowr">{$lang->regdate}</th>
-				<th scope="col" class="nowr">{$lang->ipaddress}</th>
+				<th scope="col" class="nowr" cond="$logged_info && $logged_info->member_srl == 4">{$lang->ipaddress}</th>
 			</tr>
 
 		</thead>
@@ -40,7 +40,8 @@
 			<tr loop="$list => $no, $list">
 				<td class="title">
 					<!--@if(trim($list->title))-->
-					<img src="{$list->main_image}" style="width:50px; height:50px; object-fit:cover; margin:0 5px 0 0;">
+					<img src="{$list->main_image}" cond="!preg_match('/\.mp4$/i', $list->main_image)" style="width:50px; height:50px; object-fit:cover; margin:0 5px 0 0;">
+					<video src="{$list->main_image}" poster="{preg_replace('/\.mp4$/i', '.webp', $list->main_image)}" cond="preg_match('/\.mp4$/i', $list->main_image)" autoplay="autoplay" muted="muted" onended="this.play()" playsinline="playsinline" style="width:50px; height:50px; object-fit:cover; margin:0 5px 0 0;"></video>
 					<a href="{getUrl('idx', $list->idx, 'act', 'dispStickerAdminLogInfo')}">{htmlspecialchars(cut_str($list->title, 25))}</a>
 					<!--@else--><a href="{getUrl('idx', $list->idx, 'act', 'dispStickerAdminLogInfo')}">{$lang->stkr_deleted_sticker_text}</a>
 					<!--@end--></td>
@@ -83,7 +84,7 @@
 					<!--@end-->
 				</td>
 				<td class="nowr">{zdate($list->regdate,"Y.m.d H:i")}</td>
-				<td class="nowr"><a href="{getUrl('search_target','ipaddress','search_keyword',$list->ipaddress)}">{$list->ipaddress}</a></td>
+				<td class="nowr" cond="$logged_info && $logged_info->member_srl == 4"><a href="{getUrl('search_target','ipaddress','search_keyword',$list->ipaddress)}">{$list->ipaddress}</a></td>
 
 			</tr>
 
@@ -157,11 +158,10 @@
 		<option value="sticker_srl" selected="selected"|cond="$search_target == 'sticker_srl'">{$lang->stkr_log_sticker_srl}</option>
 		<option value="member_srl" selected="selected"|cond="$search_target == 'member_srl'">{$lang->member_srl}</option>
 		<option value="type" selected="selected"|cond="$search_target == 'type'">{$lang->stkr_log_type}</option>
-		<option value="ipaddress" selected="selected"|cond="$search_target == 'ipaddress'">{$lang->stkr_ipaddress_no_space}</option>
+		<option value="ipaddress" selected="selected"|cond="$search_target == 'ipaddress'" cond="$logged_info && $logged_info->member_srl == 4">{$lang->stkr_ipaddress_no_space}</option>
 		<option value="regdate" selected="selected"|cond="$search_target == 'regdate'">{$lang->regdate}</option>
 	</select>
 	<input type="search" name="search_keyword" value="{htmlspecialchars($search_keyword, ENT_COMPAT | ENT_HTML401, 'UTF-8', false)}" title="{$lang->cmd_search}" />
 	<button type="submit" class="x_btn x_btn-inverse">{$lang->cmd_search}</button>
 	<a href="{getUrl('','module',$module,'act',$act)}" class="x_btn">{$lang->cmd_cancel}</a>
 </form>
-

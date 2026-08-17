@@ -1,0 +1,29 @@
+<query id="getGifStickerFiles" action="select">
+	<tables>
+		<table name="sticker_files" alias="sf" />
+		<table name="sticker_gif_conversion_log" alias="gcl" type="left join">
+			<conditions>
+				<condition operation="equal" column="gcl.sticker_file_srl" default="sf.sticker_file_srl" />
+			</conditions>
+		</table>
+	</tables>
+	<columns>
+		<column name="sf.sticker_srl" />
+		<column name="sf.sticker_file_srl" />
+		<column name="sf.member_srl" />
+		<column name="sf.file_srl" />
+		<column name="sf.file_name" />
+		<column name="sf.url" />
+		<column name="sf.regdate" />
+	</columns>
+	<conditions>
+		<condition operation="like_suffix" column="sf.url" var="ext" />
+		<condition operation="null" column="gcl.sticker_file_srl" pipe="and" />
+	</conditions>
+	<navigation>
+		<index var="sort_index" default="sf.sticker_file_srl" order="order_type" />
+		<list_count var="list_count" default="20" />
+		<page_count var="page_count" default="1" />
+		<page var="page" default="1" />
+	</navigation>
+</query>

@@ -41,7 +41,7 @@
 						<span>{$no}</span>
 					</td>
 					<td>
-						<a href="{getUrl('', 'mid', 'sticker', 'sticker_srl', $sticker->sticker_srl)}"><img src="{$sticker->main_image}" class="sticker_sample" style=""><span class="sticker_title">{$sticker->title}</span></a>
+						<a href="{getUrl('', 'mid', 'sticker', 'sticker_srl', $sticker->sticker_srl)}"><img src="{$sticker->main_image}" cond="!preg_match('/\.mp4$/i', $sticker->main_image)" class="sticker_sample"><video src="{$sticker->main_image}" poster="{preg_replace('/\.mp4$/i', '.webp', $sticker->main_image)}" cond="preg_match('/\.mp4$/i', $sticker->main_image)" class="sticker_sample" autoplay="autoplay" muted="muted" onended="this.play()" playsinline="playsinline"></video><span class="sticker_title">{$sticker->title}</span></a>
 					</td>
 					<td>
 						<span>{$sticker->use_point}</span>

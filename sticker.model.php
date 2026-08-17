@@ -30,6 +30,18 @@ class stickerModel extends sticker
 			unset($config->error_return_url);
 			unset($config->act);
 			unset($config->module);
+
+			$file_extensions = array_filter(array_map('trim', explode(',', (string)($config->file_ext ?? ''))));
+			$normalized_extensions = array_map('strtolower', $file_extensions);
+			foreach(array('jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4') as $extension)
+			{
+				if(!in_array($extension, $normalized_extensions, true))
+				{
+					$file_extensions[] = $extension;
+					$normalized_extensions[] = $extension;
+				}
+			}
+			$config->file_ext = implode(',', $file_extensions);
 		}
 
 		return $config;
@@ -56,7 +68,7 @@ class stickerModel extends sticker
 			$args->date = $date;
 			$output2 = executeQueryArray('sticker.getStickerMylist', $args);
 
-			$count = page > 1 || $defaultStickerCount == 5 ? $defaultStickerCount : 0;
+			$count = $page > 1 || $defaultStickerCount == 5 ? $defaultStickerCount : 0;
 
 			if($page > 1){
 				unset($sticker_array);
@@ -68,8 +80,8 @@ class stickerModel extends sticker
 				$prev_page->member_srl = $logged_info->member_srl;
 				$prev_page->date = $date;
 				$output = executeQueryArray('sticker.getStickerMylist', $prev_page);
-				$prev_data = $output->data;
-				$prev_page_count = count($output->data);
+				$prev_data = !empty($output->data) ? $output->data : array();
+				$prev_page_count = count($prev_data);
 
 				if($prev_page_count > $list_count-$defaultStickerCount){
 					end($prev_data);
@@ -95,7 +107,7 @@ class stickerModel extends sticker
 			}
 
 
-			foreach($output2->data as $key=>$sticker){
+			foreach((array)$output2->data as $sticker){
 				if($count >= $list_count){
 					break;
 				}
@@ -140,15 +152,17 @@ class stickerModel extends sticker
 
 		$args = new stdClass();
 		$args->sticker_srl = $sticker_srl;
-		$output = executeQuery('sticker.getStickerImage', $args);
-		if(!count($output->data)){
+		$output = executeQueryArray('sticker.getStickerImage', $args);
+		if(!$output->toBool() || empty($output->data)){
 			return new BaseObject(-1,'invalid_sticker');
 		}
 		foreach($output->data as $value){
 			$obj = new stdClass();
 			$obj->sticker_file_srl = $value->sticker_file_srl;
 			//$obj->no = $value->no;
-			$name = substr($value->file_name, 0, strrpos($value->file_name, "."));
+			$file_name = (string)$value->file_name;
+			$extension_pos = strrpos($file_name, ".");
+			$name = $extension_pos === false ? $file_name : substr($file_name, 0, $extension_pos);
 			$obj->name = htmlspecialchars($name);
 			$obj->url = $value->url;
 			array_push($stickerImageArray, $obj);
@@ -168,6 +182,9 @@ class stickerModel extends sticker
 			return false;
 		}
 		$comments = $output->data;
+		if(empty($comments)){
+			return 0;
+		}
 		$typeComment = gettype($comments);
 		$count = 0;
 
@@ -176,7 +193,7 @@ class stickerModel extends sticker
 				$count++;
 			}
 		} else {
-			foreach($comments as $value){
+			foreach((array)$comments as $value){
 				if(preg_match('/{@sticker:[0-9]+\|[0-9]+}/i', $value->content)){
 					$count++;
 				}
@@ -219,7 +236,8 @@ class stickerModel extends sticker
 	}
 
 	function getDefaultSticker(){
-		$defaultSticker = $this->module_config->default_sticker;
+		$config = $this->getConfig();
+		$defaultSticker = isset($config->default_sticker) ? $config->default_sticker : '';
 		$sticker = explode(',', $defaultSticker);
 		$stickerArray = array();
 		foreach($sticker as $key=>$value){
@@ -240,7 +258,8 @@ class stickerModel extends sticker
 	}
 
 	function checkDefaultSticker($sticker_srl){
-		$defaultSticker = $this->module_config->default_sticker;
+		$config = $this->getConfig();
+		$defaultSticker = isset($config->default_sticker) ? $config->default_sticker : '';
 		$sticker = explode(',', $defaultSticker);
 		foreach($sticker as $value){
 			$value = trim($value);
@@ -259,7 +278,7 @@ class stickerModel extends sticker
 		$args->sticker_srl = $sticker_srl;
 		$args->date = date("YmdHis");
 		$output = executeQuery('sticker.getStickerBuyCheck', $args);
-		return (!$output->toBool() || $output->data->count == 0) ? FALSE : TRUE;
+		return $output->toBool() && !empty($output->data) && intval($output->data->count) > 0;
 	}
 
 }

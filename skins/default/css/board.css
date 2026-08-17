@@ -1077,13 +1077,21 @@ div.stk_img_v > img {border-radius: 3px;}
 .sticker_tile.is-dragging { opacity: .35; }
 .sticker_tile.is-drag-over { box-shadow: 0 0 0 2px #5b8def; }
 
-.sticker_tile > img {
+.sticker_tile > img,
+.sticker_tile > video {
 	width: 100%;
 	height: 100%;
 	object-fit: contain;
 	display: block;
 	pointer-events: none;
 	background: #fff;
+}
+
+.sticker_placeholder_hint {
+	margin-top: 6px;
+	color: var(--color-gray-600);
+	font-size: 12px;
+	text-align: center;
 }
 
 /* 대표 배지 (하단 띠) */

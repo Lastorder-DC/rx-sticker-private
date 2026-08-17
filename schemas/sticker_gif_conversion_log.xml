@@ -1,0 +1,13 @@
+<table name="sticker_gif_conversion_log">
+	<column name="sticker_file_srl" type="number" size="11" notnull="notnull" primary_key="primary_key" />
+	<column name="sticker_srl" type="number" size="11" notnull="notnull" index="idx_sticker_srl" />
+	<column name="file_srl" type="number" size="11" notnull="notnull" index="idx_file_srl" />
+	<column name="status" type="varchar" size="20" notnull="notnull" index="idx_status" />
+	<column name="reason" type="varchar" size="40" />
+	<column name="original_url" type="varchar" size="250" notnull="notnull" />
+	<column name="result_url" type="varchar" size="250" />
+	<column name="original_size" type="number" size="20" default="0" notnull="notnull" />
+	<column name="result_size" type="number" size="20" default="0" notnull="notnull" />
+	<column name="regdate" type="date" notnull="notnull" index="idx_regdate" />
+	<column name="last_update" type="date" notnull="notnull" index="idx_last_update" />
+</table>

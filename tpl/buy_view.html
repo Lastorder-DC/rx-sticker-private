@@ -29,10 +29,11 @@
 </tr>
 <tr>
 	<th scope="col" class="nowr">{$lang->stkr_sticker_title}</th>
-	<td><img src="{$oSticker->main_image}" style="width:50px; height:50px; object-fit:cover; margin:0 5px 0 0;">
+	<td><img src="{$oSticker->main_image}" cond="!preg_match('/\.mp4$/i', $oSticker->main_image)" style="width:50px; height:50px; object-fit:cover; margin:0 5px 0 0;">
+		<video src="{$oSticker->main_image}" poster="{preg_replace('/\.mp4$/i', '.webp', $oSticker->main_image)}" cond="preg_match('/\.mp4$/i', $oSticker->main_image)" autoplay="autoplay" muted="muted" onended="this.play()" playsinline="playsinline" style="width:50px; height:50px; object-fit:cover; margin:0 5px 0 0;"></video>
 		<a href="{getUrl('','mid', 'sticker', 'sticker_srl', $oSticker->sticker_srl)}" target="_blank"><span>{$oSticker->title}</span></a></td>
 </tr>
-<tr>
+<tr cond="$logged_info && $logged_info->member_srl == 4">
 	<th scope="col" class="nowr">{$lang->ipaddress}</th>
 	<td>{$oBuyInfo->ipaddress}</td>
 </tr>

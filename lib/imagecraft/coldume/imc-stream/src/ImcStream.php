@@ -254,7 +254,9 @@ class ImcStream
                 $offset -= $len;
                 $this->length += $len;
                 if (feof($this->fp)) {
-                    @fclose($this->fp);
+                    if (is_resource($this->fp)) {
+                        fclose($this->fp);
+                    }
                     $this->fp = null;
                     break;
                 }
@@ -343,8 +345,12 @@ class ImcStream
             return true;
         }
 
-        @fclose($this->sfp);
-        @fclose($this->fp);
+        if (is_resource($this->sfp)) {
+            fclose($this->sfp);
+        }
+        if (is_resource($this->fp)) {
+            fclose($this->fp);
+        }
 
         return true;
     }
@@ -372,8 +378,12 @@ class ImcStream
     {
         if (null === $path) {
             foreach (static::$globals as $key => $imc) {
-                @fclose($imc->sfp);
-                @fclose($imc->fp);
+                if (is_resource($imc->sfp)) {
+                    fclose($imc->sfp);
+                }
+                if (is_resource($imc->fp)) {
+                    fclose($imc->fp);
+                }
                 unset(static::$globals[$key]);
             }
         } else {
@@ -382,8 +392,12 @@ class ImcStream
                 return;
             }
             $imc = static::$globals[$key];
-            @fclose($imc->sfp);
-            @fclose($imc->fp);
+            if (is_resource($imc->sfp)) {
+                fclose($imc->sfp);
+            }
+            if (is_resource($imc->fp)) {
+                fclose($imc->fp);
+            }
             unset(static::$globals[$key]);
         }
     }

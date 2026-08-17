@@ -32,7 +32,7 @@
 				<th scope="col" class="nowr">사용 수</th>
 				<th scope="col" class="nowr">등록일</th>
 				<th scope="col" class="nowr">만료일</th>
-				<th scope="col" class="nowr">{$lang->ipaddress}</th>
+				<th scope="col" class="nowr" cond="$logged_info && $logged_info->member_srl == 4">{$lang->ipaddress}</th>
 				<th scope="col" class="nowr">{$lang->status}</th>
 			</tr>
 
@@ -42,14 +42,15 @@
 
 			<tr loop="$list => $no, $list">
 				<td class="title">
-					<img src="{$list->main_image}" style="width:50px; height:50px; object-fit:cover; margin:0 5px 0 0;">
+					<img src="{$list->main_image}" cond="!preg_match('/\.mp4$/i', $list->main_image)" style="width:50px; height:50px; object-fit:cover; margin:0 5px 0 0;">
+					<video src="{$list->main_image}" poster="{preg_replace('/\.mp4$/i', '.webp', $list->main_image)}" cond="preg_match('/\.mp4$/i', $list->main_image)" autoplay="autoplay" muted="muted" onended="this.play()" playsinline="playsinline" style="width:50px; height:50px; object-fit:cover; margin:0 5px 0 0;"></video>
 					<a href="{getUrl('idx', $list->idx, 'act', 'dispStickerAdminBuyInfo')}"><!--@if(trim($list->title))-->{htmlspecialchars(cut_str($list->title, 25))}<!--@else--><em>스티커가 없습니다.</em><!--@end--></a></td>
 				<td class="nowr"><a href="#popup_menu_area" class="member_{$list->member_srl}">{$list->nick_name}</a></td>
 				<td class="nowr">{(int)$list->use_point}</td>
 				<td class="nowr">{$list->used_count}</td>
 				<td class="nowr">{zdate($list->regdate,"Y.m.d H:i")}</td>
 				<td class="nowr">{$list->expdate ? zdate($list->expdate,"Y.m.d H:i") : "무기한"}</td>
-				<td class="nowr"><a href="{getUrl('search_target','ipaddress','search_keyword',$list->ipaddress)}">{$list->ipaddress}</a></td>
+				<td class="nowr" cond="$logged_info && $logged_info->member_srl == 4"><a href="{getUrl('search_target','ipaddress','search_keyword',$list->ipaddress)}">{$list->ipaddress}</a></td>
 				<td class="nowr">
 {@
 	$list->expdate = intval($list->expdate);
@@ -117,7 +118,7 @@
 		<option value="use_point" selected="selected"|cond="$search_target == 'use_point'">사용 포인트</option>
 		<option value="expdate" selected="selected"|cond="$search_target == 'expdate'">만료일</option>
 		<option value="regdate" selected="selected"|cond="$search_target == 'regdate'">구매일</option>
-		<option value="ipaddress" selected="selected"|cond="$search_target == 'ipaddress'">IP주소</option>
+		<option value="ipaddress" selected="selected"|cond="$search_target == 'ipaddress'" cond="$logged_info && $logged_info->member_srl == 4">IP주소</option>
 		<option value="status" selected="selected"|cond="$search_target == 'status'">상태</option>
 	</select>
 	<input type="search" name="search_keyword" value="{htmlspecialchars($search_keyword, ENT_COMPAT | ENT_HTML401, 'UTF-8', false)}" title="{$lang->cmd_search}" />

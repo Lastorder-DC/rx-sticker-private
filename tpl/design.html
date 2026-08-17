@@ -50,6 +50,7 @@
 			<label class="x_control-label" for="mskin">{$lang->mobile_skin}</label>
 			<div class="x_controls">
 				<select name="mskin" id="mskin">
+					<option value="/USE_RESPONSIVE/" selected|cond="$module_info->mskin == '/USE_RESPONSIVE/'">{$lang->stkr_responsive_skin}</option>
 					<option value="{$key}" selected|cond="$module_info->mskin == $key" loop="$mskin_list => $key, $val">{$val->title}</option>
 				</select>
 			</div>

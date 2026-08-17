@@ -2,6 +2,7 @@
 /*! Copyright (C) 2016 BGM STORAGE. All rights reserved. */
 use Rhymix\Framework\Cache;
 use Rhymix\Framework\Security;
+use Rhymix\Modules\Sticker\Services\ImageProcessor;
 
 /**
  * @class  stickerController
@@ -37,11 +38,9 @@ class stickerController extends sticker
 		$module_config = $oStickerModel->getConfig();
 
 		if($module_config->add_member_menu === "Y"){
-			Context::loadLang('./modules/sticker/lang/lang.xml');
-
 			$oMemberController = memberController::getInstance();
 			$oMemberController->addMemberMenu('dispStickerMylist', 'cmd_sticker_mypage');
-			$oMemberController->addMemberMenu('dispStickerMyBlock', '차단한 스티커');
+			$oMemberController->addMemberMenu('dispStickerMyBlock', 'stkr_block_list');
 		}
 
 		return new BaseObject();
@@ -61,18 +60,18 @@ class stickerController extends sticker
 		$columnList = array('module');
 		$cur_module_info = $oModuleModel->getModuleInfoByMid($mid, 0, $columnList);
 
-		if($cur_module_info->module != 'sticker'){
+		if(!$cur_module_info || $cur_module_info->module != 'sticker'){
 			return new BaseObject();
 		}
 
-		if($member_srl == $logged_info->member_srl){
+		if($logged_info && $member_srl == $logged_info->member_srl){
 			$member_info = $logged_info;
 		} else {
 			$oMemberModel = memberModel::getInstance();
 			$member_info = $oMemberModel->getMemberInfoByMemberSrl($member_srl);
 		}
 
-		if(!$member_info->user_id){
+		if(!$member_info || !$member_info->user_id){
 			return new BaseObject();
 		}
 
@@ -262,12 +261,30 @@ class stickerController extends sticker
 		$part = "";
 		if(!empty($output->data)){
 			$data = $output->data;
-			$file_name = substr($data->file_name, 0, strrpos($data->file_name, "."));
+			$file_name = (string)$data->file_name;
+			$extension_pos = strrpos($file_name, ".");
+			$file_name = $extension_pos === false ? $file_name : substr($file_name, 0, $extension_pos);
 
-			if(!isset($_COOKIE['txtmode']) || !$_COOKIE['txtmode']){
-				$part = '<!--BeforeComment('.$matches[1].','.$matches[2].')--><div class="comment_'.$matches[1].'_'.$matches[2].' xe_content"><a href="/?mid=sticker&sticker_srl='.$data->sticker_srl.'" title="'.$data->title.'"><img src="'.$data->url.'" style="width:120px;height:120px;border-radius:3px;" alt="'.$file_name.'"></a></div><!--AfterComment('.$matches[1].','.$matches[2].')-->';
+			$url = htmlspecialchars((string)$data->url, ENT_QUOTES, 'UTF-8', false);
+			$title = htmlspecialchars((string)$data->title, ENT_QUOTES, 'UTF-8', false);
+			$file_name = htmlspecialchars($file_name, ENT_QUOTES, 'UTF-8', false);
+			$sticker_url = htmlspecialchars(getNotEncodedUrl('', 'mid', 'sticker', 'sticker_srl', $data->sticker_srl), ENT_QUOTES, 'UTF-8', false);
+			if(empty($_COOKIE['txtmode'])){
+				$logged_info = Context::get('logged_info');
+				$member_srl = $logged_info ? $logged_info->member_srl : 0;
+				if($this->_isBlockedSticker($member_srl, $data->sticker_srl)){
+					$blocked_url = htmlspecialchars('./modules/sticker/skins/default/blocked.png', ENT_QUOTES, 'UTF-8', false);
+					$media = '<img src="'.$blocked_url.'" style="width:120px;height:120px;border-radius:3px;" alt="'.$file_name.'">';
+				} else if(ImageProcessor::isMp4($data->url)){
+					$poster = htmlspecialchars(ImageProcessor::getPosterUrl($data->url), ENT_QUOTES, 'UTF-8', false);
+					$media = '<video src="'.$url.'" poster="'.$poster.'" autoplay muted loop playsinline preload="metadata" style="width:120px;height:120px;object-fit:cover;border-radius:3px;"></video>';
+				} else {
+					$media = '<img src="'.$url.'" style="width:120px;height:120px;border-radius:3px;" alt="'.$file_name.'">';
+				}
+				$part = '<!--BeforeComment('.$matches[1].','.$matches[2].')--><div class="comment_'.$matches[1].'_'.$matches[2].' xe_content"><a href="'.$sticker_url.'" title="'.$title.'">'.$media.'</a></div><!--AfterComment('.$matches[1].','.$matches[2].')-->';
 			} else {
-				$part = '<!--BeforeComment('.$matches[1].','.$matches[2].')--><div class="txtmode comment_'.$matches[1].'_'.$matches[2].' xe_content"><p style="margin:1em;">데이터 절약 모드 작동중<BR><a href="/?mid=sticker&sticker_srl='.$data->sticker_srl.'" target="_blank" style="color:#777;">('.$data->title.')</a></p></div><!--AfterComment('.$matches[1].','.$matches[2].')-->';
+				$data_saver_label = htmlspecialchars((string)Context::getLang('stkr_data_saver_active'), ENT_QUOTES, 'UTF-8', false);
+				$part = '<!--BeforeComment('.$matches[1].','.$matches[2].')--><div class="txtmode comment_'.$matches[1].'_'.$matches[2].' xe_content"><p style="margin:1em;">'.$data_saver_label.'<br><a href="'.$sticker_url.'" target="_blank" rel="noopener" style="color:#777;">('.$title.')</a></p></div><!--AfterComment('.$matches[1].','.$matches[2].')-->';
 			}
 
 		} else {
@@ -284,11 +301,11 @@ class stickerController extends sticker
 	function procStickerBuy(){
 		$sticker_srl = Context::get('sticker_srl');
 		$logged_info = Context::get('logged_info');
-		$member_srl = $logged_info->member_srl;
 
 		if(!$logged_info || !$sticker_srl){
 			return new BaseObject(-1,'msg_invalid_access');
 		}
+		$member_srl = $logged_info->member_srl;
 
 		if(!$this->grant->buy){
 			return new BaseObject(-1,'msg_access_denied');
@@ -354,7 +371,7 @@ class stickerController extends sticker
 		$args->sticker_srl = $sticker_srl;
 		$args->use_point = $sticker->price;
 		$args->expdate = $expdate;
-		$args->ipaddress = $_SERVER['REMOTE_ADDR'];
+		$args->ipaddress = \RX_CLIENT_IP;
 		$args->list_order = $sequence * -1;
 		$args->regdate = $date;
 		$output = executeQuery('sticker.insertBuyStickerInfo', $args);
@@ -732,6 +749,64 @@ class stickerController extends sticker
 		$this->setMessage('success_deleted');
 	}
 
+	/**
+	 * Publish a sticker that is currently awaiting review.
+	 *
+	 * @return BaseObject|null
+	 */
+	public function procStickerPublish()
+	{
+		if(Context::getRequestMethod() !== 'POST')
+		{
+			return new BaseObject(-1, 'msg_invalid_request');
+		}
+
+		$logged_info = Context::get('logged_info');
+		if(!$logged_info || (($logged_info->is_admin ?? 'N') !== 'Y' && !$this->grant->manager))
+		{
+			return new BaseObject(-1, 'msg_not_permitted');
+		}
+
+		$sticker_srl = (int)Context::get('sticker_srl');
+		$oStickerModel = stickerModel::getInstance();
+		$oSticker = $sticker_srl > 0 ? $oStickerModel->getSticker($sticker_srl) : null;
+		if(!$oSticker)
+		{
+			return new BaseObject(-1, 'msg_invalid_sticker');
+		}
+		if($oSticker->status !== 'CHECK')
+		{
+			return new BaseObject(-1, 'msg_stkr_only_review_can_publish');
+		}
+
+		$args = new stdClass();
+		$args->sticker_srl = $sticker_srl;
+		$args->current_status = 'CHECK';
+		$args->status = 'PUBLIC';
+		$args->last_update = date('YmdHis');
+		$args->last_updater = $logged_info->nick_name;
+		$args->list_order = getNextSequence() * -1;
+		$output = executeQuery('sticker.updateStickerStatus', $args);
+		if(!$output->toBool())
+		{
+			return $output;
+		}
+		if(DB::getInstance()->getAffectedRows() !== 1)
+		{
+			return new BaseObject(-1, 'msg_stkr_only_review_can_publish');
+		}
+
+		$oStickerModel->clearStickerCache($sticker_srl);
+		$log_args = new stdClass();
+		$log_args->sticker_srl = $sticker_srl;
+		$log_args->type = 'updateStickerAdmin';
+		$this->insertStickerLog($log_args);
+
+		$this->setMessage('success_stkr_published');
+		$return_url = Context::get('success_return_url') ?: getNotEncodedUrl('', 'mid', 'sticker', 'sticker_srl', $sticker_srl);
+		$this->setRedirectUrl($return_url);
+	}
+
 
 	function procStickerInsert(){
 		if( !(extension_loaded('gd') && function_exists('gd_info')) ){
@@ -807,12 +882,12 @@ class stickerController extends sticker
 		}
 
 		// 제목 유무 체크
-		if(!$obj->title){
+		if(empty($obj->title)){
 			return new BaseObject(-1,'unknown title');
 		}
 
 		//빈 내용인지 체크
-		if(!$obj->content){
+		if(empty($obj->content)){
 			return new BaseObject(-1,'unknown content');
 		}
 
@@ -821,7 +896,7 @@ class stickerController extends sticker
 			$obj->price = $this->module_config->minPoint;
 		} else {
 
-			if($obj->price > $this->module_config->maxPoint || $obj->price < $this->module_config->minPoint){
+			if(!isset($obj->price) || $obj->price > $this->module_config->maxPoint || $obj->price < $this->module_config->minPoint){
 				return new BaseObject(-1,'point error');
 			}
 
@@ -829,13 +904,12 @@ class stickerController extends sticker
 
 		//파일 체크
 		//파일이 존재하지 않을 시
-		if(!$obj->sticker_main_file || !$obj->sticker_file){
+		if(empty($obj->sticker_main_file) || empty($obj->sticker_file)){
 			return new BaseObject(-1,'file is not exist');
 		} else { //존재 할 때 파일 갯수와 용량, 확장자 체크
 
 			$sticker_count = count($obj->sticker_file);
 			$sticker_accu_size = 0;
-			$sticker_mime_type = array('image/jpeg', 'image/gif', 'image/png', 'image/webp');
 			$file_size = $this->module_config->file_size << 10;
 			$file_size_all = $this->module_config->file_size_all << 10;
 
@@ -855,7 +929,7 @@ class stickerController extends sticker
 				return new BaseObject(-1,'exceed file size');
 			}
 
-			if(!in_array($obj->sticker_main_file['type'], $sticker_mime_type)){
+			if(!$this->_isAllowedStickerUploadFile($obj->sticker_main_file)){
 				return new BaseObject(-1,'unknown file extension');
 			}
 
@@ -873,7 +947,7 @@ class stickerController extends sticker
 					return new BaseObject(-1,'exceed files size');
 				}
 
-				if(!in_array($value['type'], $sticker_mime_type)){
+				if(!$this->_isAllowedStickerUploadFile($value)){
 					return new BaseObject(-1,'unknown file extension');
 				}
 			}
@@ -905,6 +979,9 @@ class stickerController extends sticker
 			} else if($convert === 3){
 				$this->_deleteStickerFiles($sticker_srl);
 				return new BaseObject(-1,'image resolution is too big');
+			} else if($convert === ImageProcessor::CODE_VIDEO_PROCESSING_UNAVAILABLE){
+				$this->_deleteStickerFiles($sticker_srl);
+				return new BaseObject(-1, 'msg_stkr_video_processing_unavailable');
 			}
 		}
 
@@ -926,6 +1003,9 @@ class stickerController extends sticker
 				} else if($convert === 3){
 					$this->_deleteStickerFiles($sticker_srl);
 					return new BaseObject(-1,'image resolution is too big');
+				} else if($convert === ImageProcessor::CODE_VIDEO_PROCESSING_UNAVAILABLE){
+					$this->_deleteStickerFiles($sticker_srl);
+					return new BaseObject(-1, 'msg_stkr_video_processing_unavailable');
 				}
 			}
 
@@ -952,7 +1032,7 @@ class stickerController extends sticker
 		$args->price = $obj->price;
 		$args->buy_limit = $buy_limit;
 		$args->exptime = $exptime;
-		$args->ipaddress = $_SERVER['REMOTE_ADDR'];
+		$args->ipaddress = \RX_CLIENT_IP;
 		$args->last_update = $date;
 		$args->last_updater = $logged_info->nick_name;
 		$args->list_order = $sequence * -1;
@@ -985,12 +1065,12 @@ class stickerController extends sticker
 	function _updateSticker($obj, $sticker){
 
 		// 제목 유무 체크
-		if(!$obj->title){
+		if(empty($obj->title)){
 			return new BaseObject(-1,'unknown title');
 		}
 
 		//빈 내용인지 체크
-		if(!$obj->content){
+		if(empty($obj->content)){
 			return new BaseObject(-1,'unknown content');
 		}
 
@@ -998,7 +1078,7 @@ class stickerController extends sticker
 		if($this->module_config->minPoint==$this->module_config->maxPoint){
 			$obj->price = $this->module_config->minPoint;
 		} else {
-			if($obj->price > $this->module_config->maxPoint || $obj->price < $this->module_config->minPoint){
+			if(!isset($obj->price) || $obj->price > $this->module_config->maxPoint || $obj->price < $this->module_config->minPoint){
 				return new BaseObject(-1,'point error');
 			}
 		}
@@ -1019,7 +1099,6 @@ class stickerController extends sticker
 		}
 
 		$sticker_file = $output->data;
-		$sticker_mime_type = array('image/jpeg', 'image/gif', 'image/png', 'image/webp');
 		$file_size = $this->module_config->file_size << 10;
 		$file_size_all = $this->module_config->file_size_all << 10;
 
@@ -1029,7 +1108,7 @@ class stickerController extends sticker
 
 		$oFileController = fileController::getInstance();
 
-		if($obj->sticker_main_file){
+		if(!empty($obj->sticker_main_file)){
 
 			$main_image_info = null;
 			foreach($sticker_file as $value){
@@ -1066,7 +1145,7 @@ class stickerController extends sticker
 
 			$file_size_accm = $file_size_accm - $main_image_info->file_size + $obj->sticker_main_file['size'];
 
-			if(!in_array($obj->sticker_main_file['type'], $sticker_mime_type)){
+			if(!$this->_isAllowedStickerUploadFile($obj->sticker_main_file)){
 				return new BaseObject(-1,'unknown file extension');
 			}
 
@@ -1088,6 +1167,9 @@ class stickerController extends sticker
 				} else if($convert === 3){
 					$this->_deleteFile($output->get('file_srl'));
 					return new BaseObject(-1,'image resolution is too big');
+				} else if($convert === ImageProcessor::CODE_VIDEO_PROCESSING_UNAVAILABLE){
+					$this->_deleteFile($output->get('file_srl'));
+					return new BaseObject(-1, 'msg_stkr_video_processing_unavailable');
 				}
 			}
 
@@ -1101,7 +1183,7 @@ class stickerController extends sticker
 					return new BaseObject(-1,'file transfer error');
 				}
 
-				if(!in_array($stk['type'], $sticker_mime_type)){
+				if(!$this->_isAllowedStickerUploadFile($stk)){
 					return new BaseObject(-1,'unknown file extension');
 				}
 
@@ -1142,6 +1224,9 @@ class stickerController extends sticker
 						} else if($convert === 3){
 							$this->_deleteFile($output->get('file_srl'));
 							return new BaseObject(-1,'image resolution is too big');
+						} else if($convert === ImageProcessor::CODE_VIDEO_PROCESSING_UNAVAILABLE){
+							$this->_deleteFile($output->get('file_srl'));
+							return new BaseObject(-1, 'msg_stkr_video_processing_unavailable');
 						}
 					}
 
@@ -1188,6 +1273,9 @@ class stickerController extends sticker
 							} else if($convert == 3){
 								$this->_deleteFile($output->get('file_srl'));
 								return new BaseObject(-1,'image resolution is too big');
+							} else if($convert === ImageProcessor::CODE_VIDEO_PROCESSING_UNAVAILABLE){
+								$this->_deleteFile($output->get('file_srl'));
+								return new BaseObject(-1, 'msg_stkr_video_processing_unavailable');
 							}
 						}
 
@@ -1211,6 +1299,9 @@ class stickerController extends sticker
 							} else if($convert === 3){
 								$this->_deleteFile($output->get('file_srl'));
 								return new BaseObject(-1,'image resolution is too big');
+							} else if($convert === ImageProcessor::CODE_VIDEO_PROCESSING_UNAVAILABLE){
+								$this->_deleteFile($output->get('file_srl'));
+								return new BaseObject(-1, 'msg_stkr_video_processing_unavailable');
 							}
 						}
 
@@ -1258,250 +1349,120 @@ class stickerController extends sticker
 	}
 
 	//convert and insert
-	function _insertImage($sticker_srl, $file_srl, $uploaded_filename, $source_filename, &$file_count, $is_update = false){
-
-		if(!$uploaded_filename){
-			return false;
-		}
-
-		if(!preg_match("/\.(jpg|jpeg|gif|png|webp)$/i", $uploaded_filename , $file_ext)){
-			return false;
-		}
-
-		$min_width = $this->module_config->maxPx;
-		$min_height = $this->module_config->maxPx;
-
-		//check image size
-		$source_fileinfo = getimagesize($uploaded_filename);
-		if(!$source_fileinfo){
-			return false;
-		} else {
-			$width = $source_fileinfo[0];
-			$height = $source_fileinfo[1];
-
-			//설상 gif파일이라도 가로세로 사이즈가 설정값보다 작으면 업로드 중단
-			if($width < $this->module_config->image_min_width || $height < $this->module_config->image_min_height){
-				return 2;
-			}
-			if($width > 4096 || $height > 2160){ // If Image resolution is over the 4k, return upload fail.
-				return 3;
-			}
-			if($file_ext[0] !== '.gif' && $source_fileinfo['mime'] === 'image/gif'){
-				$file_ext[0] = '.gif';
-				$source_filename_withoutExt = strrpos($source_filename, '.');
-				$source_filename = substr($source_filename, 0, $source_filename_withoutExt).'.gif';
-			}
-
-			$getImageSizeRate = $width / $height;
-			$getImageSizeRate = ($getImageSizeRate > 1.8 || $getImageSizeRate < 0.65) || ($width >= $min_width || $height >= $min_height) ? 'crop' : 'ratio';
-		}
-
-		if($this->module_config->resizing == "N" || ($width < 120 && $height < 120 ) ){
-			$this->_insertSickerFile($sticker_srl, $file_srl, $source_filename, $uploaded_filename, $is_update ? $file_count : $file_count++);
-			return true;
-		}
-
-		if($source_fileinfo['mime'] === 'image/gif'){
-			$is_larger = $width > $height ? $width : $height;
-			$is_smaller = $is_larger === $width ? $height : $width;
-
-			$GIFRatio = $is_smaller / $is_larger;
-
-			if($width <= $this->module_config->maxPx && $height <= $this->module_config->maxPx && $GIFRatio > 0.4){
-				$this->_insertSickerFile($sticker_srl, $file_srl, $source_filename, $uploaded_filename, $is_update ? $file_count : $file_count++);
-				return true;
-			}
-
-			require_once 'sticker.lib.php';
-
-			$filename_path = strrpos($uploaded_filename, '/');
-			$output_srl = substr($uploaded_filename, 0, $filename_path+1).Security::getRandom(32, 'hex').'.gif';
-
-			$resize = resizeGIF($uploaded_filename, $output_srl, $min_width, $min_height);
-			if($resize){
-				$origin_image_size = filesize($uploaded_filename);
-				$compressed_image_size = filesize($output_srl);
-				if($origin_image_size > $compressed_image_size || $this->module_config->gifResizingIf == "N" || $GIFRatio < 0.4){
-					$args = new stdClass();
-					$args->file_srl = $file_srl;
-					$args->uploaded_filename = $output_srl;
-					$args->source_filename = $source_filename;
-					$args->file_size = filesize($output_srl);
-					$output = executeQuery('sticker.updateFileInfo', $args);
-					if($uploaded_filename !== $output_srl && file_exists($uploaded_filename)){
-						FileHandler::removeFile($uploaded_filename);
-					}
-
-					$this->_insertSickerFile($sticker_srl, $file_srl, $source_filename, $output_srl, $is_update ? $file_count : $file_count++);
-					return true;
-				} else {
-
-					if($uploaded_filename !== $output_srl && file_exists($output_srl)){
-						FileHandler::removeFile($output_srl);
-					}
-
-				}
-			}
-
-			$this->_insertSickerFile($sticker_srl, $file_srl, $source_filename, $uploaded_filename, $is_update ? $file_count : $file_count++);
-			return true;
-		}
-
-		//set output_filename
-		$filename_path = strrpos($uploaded_filename, '/');
-		$output_srl = substr($uploaded_filename, 0, $filename_path+1).Security::getRandom(32, 'hex').'.jpg';
-
-		//set source_filename
-		$source_filename_withoutExt = strrpos($source_filename, '.');
-		$source_filename = substr($source_filename, 0, $source_filename_withoutExt).'.jpg';
-
-		if(FileHandler::createImageFile($uploaded_filename,$output_srl,$min_width,$min_height,'jpg',$getImageSizeRate)) // or crop
+	/**
+	 * Perform an early browser MIME check before the authoritative server-side validation.
+	 *
+	 * Some browsers report MP4 files as application/octet-stream, so the extension is used
+	 * only for that fallback. ImageProcessor validates the actual container and stream later.
+	 *
+	 * @param mixed $file PHP upload array.
+	 * @return bool
+	 */
+	private function _isAllowedStickerUploadFile($file): bool
+	{
+		if(!is_array($file))
 		{
-			$args = new stdClass();
-			$args->file_srl = $file_srl;
-			$args->uploaded_filename = $output_srl;
-			$args->source_filename = $source_filename;
-			$args->file_size = filesize($output_srl);
-			$output = executeQuery('sticker.updateFileInfo', $args);
-			if($uploaded_filename !== $output_srl && file_exists($uploaded_filename)){
-				FileHandler::removeFile($uploaded_filename);
-			}
-
-			$this->_insertSickerFile($sticker_srl, $file_srl, $source_filename, $output_srl, $is_update ? $file_count : $file_count++);
-
-		} else {
 			return false;
 		}
 
-		return true;
+		$mime_type = strtolower((string)($file['type'] ?? ''));
+		$allowed_mime_types = array('image/jpeg', 'image/gif', 'image/png', 'image/webp', 'video/mp4', 'application/mp4', 'video/x-m4v');
+		if(in_array($mime_type, $allowed_mime_types, true))
+		{
+			return true;
+		}
 
+		return ($mime_type === '' || $mime_type === 'application/octet-stream') && preg_match('/\.mp4$/i', (string)($file['name'] ?? '')) === 1;
 	}
 
-	function _updateImage($origin_obj, $file_srl, $uploaded_filename, $source_filename){ // origin file, change, changed, changed
-
-		if(!$file_srl || !$uploaded_filename || !$source_filename){
-			return false;
-		}
-
-		if(!preg_match("/\.(jpg|jpeg|gif|png|webp)$/i", $uploaded_filename , $file_ext)){
-			return false;
-		}
-
-		$min_width = $this->module_config->maxPx;
-		$min_height = $this->module_config->maxPx;
-
-		//check image size
-		$source_fileinfo = getimagesize($uploaded_filename);
-		if(!$source_fileinfo){
-			return false;
-		} else {
-			$width = $source_fileinfo[0];
-			$height = $source_fileinfo[1];
-
-			if($width < $this->module_config->image_min_width || $height < $this->module_config->image_min_height){
-				return 2;
-			}
-			if($width > 4096 || $height > 2160){
-				return 3;
-			}
-			if($file_ext[0] !== '.gif' && $source_fileinfo['mime'] === 'image/gif'){
-				$file_ext[0] = '.gif';
-				$source_filename_withoutExt = strrpos($source_filename, '.');
-				$source_filename = substr($source_filename, 0, $source_filename_withoutExt).'.gif';
-			}
-
-			$getImageSizeRate = $width / $height;
-			$getImageSizeRate = ($getImageSizeRate > 1.8 || $getImageSizeRate < 0.65) || ($width >= $min_width || $height >= $min_height) ? 'crop' : 'ratio';
-		}
-
-		if($this->module_config->resizing == "N"){
-			//sticker_files테이블 갱신전 파일 삭제
-			$this->_deleteFile($origin_obj->file_srl);
-
-			// 재등록
-			$this->_updateStickerFileInfo($origin_obj->sticker_file_srl, $file_srl, $source_filename, $uploaded_filename, $origin_obj->no);
-			return true;
-		}
-
-		if($source_fileinfo['mime'] === 'image/gif'){
-			$is_larger = $width > $height ? $width : $height;
-			$is_smaller = $is_larger === $width ? $height : $width;
-
-			$GIFRatio = $is_smaller / $is_larger;
-
-			if($width <= $this->module_config->maxPx && $height <= $this->module_config->maxPx && $GIFRatio > 0.4){
-				$this->_deleteFile($origin_obj->file_srl);
-				$this->_updateStickerFileInfo($origin_obj->sticker_file_srl, $file_srl, $source_filename, $uploaded_filename, $origin_obj->no);
-				return true;
-			}
-
-			require_once 'sticker.lib.php';
-
-			$filename_path = strrpos($uploaded_filename, '/');
-			$output_name = substr($uploaded_filename, 0, $filename_path+1).Security::getRandom(32, 'hex').'.gif';
-
-			$resize = resizeGIF($uploaded_filename, $output_name, $min_width, $min_height);
-			if($resize){
-				$origin_image_size = filesize($uploaded_filename);
-				$compressed_image_size = filesize($output_name);
-				if($origin_image_size > $compressed_image_size || $this->module_config->gifResizingIf == "N" || $GIFRatio < 0.4){
-
-					$args = new stdClass();
-					$args->file_srl = $file_srl;
-					$args->uploaded_filename = $output_name;
-					$args->source_filename = $source_filename;
-					$args->file_size = filesize($output_name);
-					$output = executeQuery('sticker.updateFileInfo', $args);
-					if($uploaded_filename !== $output_name && file_exists($uploaded_filename)){
-						FileHandler::removeFile($uploaded_filename);
-					}
-
-					$this->_deleteFile($origin_obj->file_srl);
-					$this->_updateStickerFileInfo($origin_obj->sticker_file_srl, $file_srl, $source_filename, $output_name, $origin_obj->no);
-
-					return true;
-				} else {
-					if($uploaded_filename !== $output_name && file_exists($output_name)){
-						FileHandler::removeFile($output_name);
-					}
-				}
-			}
-
-			$this->_deleteFile($origin_obj->file_srl);
-			$this->_updateStickerFileInfo($origin_obj->sticker_file_srl, $file_srl, $source_filename, $uploaded_filename, $origin_obj->no);
-			return true;
-
-		}
-
-		//set output_filename
-		$filename_path = strrpos($uploaded_filename, '/');
-		$output_srl = substr($uploaded_filename, 0, $filename_path+1).Security::getRandom(32, 'hex').'.jpg';
-
-		//set source_filename
-		$source_filename_withoutExt = strrpos($source_filename, '.');
-		$source_filename = substr($source_filename, 0, $source_filename_withoutExt).'.jpg';
-
-		if(FileHandler::createImageFile($uploaded_filename,$output_srl,$min_width,$min_height,'jpg',$getImageSizeRate)) // or crop
+	/**
+	 * Validate, process, and register a newly uploaded sticker image.
+	 *
+	 * @param int $sticker_srl Sticker serial number.
+	 * @param int $file_srl Rhymix file serial number.
+	 * @param string $uploaded_filename Uploaded file path.
+	 * @param string $source_filename Original filename.
+	 * @param int $file_count Current file number.
+	 * @param bool $is_update Whether the requested slot number must be preserved.
+	 * @return bool|int
+	 */
+	function _insertImage($sticker_srl, $file_srl, $uploaded_filename, $source_filename, &$file_count, $is_update = false)
+	{
+		$validated = ImageProcessor::validate((string)$uploaded_filename, (string)$source_filename, $this->module_config);
+		if($validated === false || $validated === ImageProcessor::CODE_IMAGE_TOO_SMALL || $validated === ImageProcessor::CODE_IMAGE_TOO_LARGE || $validated === ImageProcessor::CODE_VIDEO_PROCESSING_UNAVAILABLE)
 		{
-			$args = new stdClass();
-			$args->file_srl = $file_srl;
-			$args->uploaded_filename = $output_srl;
-			$args->source_filename = $source_filename;
-			$args->file_size = filesize($output_srl);
-			$output = executeQuery('sticker.updateFileInfo', $args);
-			if($uploaded_filename !== $output_srl && file_exists($uploaded_filename)){
-				FileHandler::removeFile($uploaded_filename);
-			}
-			$this->_deleteFile($origin_obj->file_srl);
+			return $validated;
+		}
 
-			$this->_updateStickerFileInfo($origin_obj->sticker_file_srl, $file_srl, $source_filename, $output_srl, $origin_obj->no);
+		$result = ImageProcessor::process((string)$uploaded_filename, $validated, $this->module_config);
+		if($result === false || $result === ImageProcessor::CODE_VIDEO_PROCESSING_UNAVAILABLE)
+		{
+			return $result;
+		}
 
-		} else {
+		$file_output = ImageProcessor::finalizeFile(intval($file_srl), $result);
+		if(!$file_output->toBool())
+		{
 			return false;
 		}
 
-		return true;
+		$no = $is_update ? $file_count : $file_count++;
+		$sticker_output = $this->_insertSickerFile($sticker_srl, $file_srl, $result->source_filename, $result->url, $no);
+		if(!$sticker_output || !$sticker_output->toBool())
+		{
+			return false;
+		}
 
+		ImageProcessor::removeOriginal($result);
+		return true;
+	}
+
+	/**
+	 * Validate, process, and register a replacement sticker image.
+	 *
+	 * The existing file is deleted only after the new file and sticker rows have both been
+	 * updated successfully.
+	 *
+	 * @param object $origin_obj Existing sticker file row.
+	 * @param int $file_srl New Rhymix file serial number.
+	 * @param string $uploaded_filename Uploaded file path.
+	 * @param string $source_filename Original filename.
+	 * @return bool|int
+	 */
+	function _updateImage($origin_obj, $file_srl, $uploaded_filename, $source_filename)
+	{
+		if(!$origin_obj || !$file_srl)
+		{
+			return false;
+		}
+
+		$validated = ImageProcessor::validate((string)$uploaded_filename, (string)$source_filename, $this->module_config);
+		if($validated === false || $validated === ImageProcessor::CODE_IMAGE_TOO_SMALL || $validated === ImageProcessor::CODE_IMAGE_TOO_LARGE || $validated === ImageProcessor::CODE_VIDEO_PROCESSING_UNAVAILABLE)
+		{
+			return $validated;
+		}
+
+		$result = ImageProcessor::process((string)$uploaded_filename, $validated, $this->module_config);
+		if($result === false || $result === ImageProcessor::CODE_VIDEO_PROCESSING_UNAVAILABLE)
+		{
+			return $result;
+		}
+
+		$file_output = ImageProcessor::finalizeFile(intval($file_srl), $result);
+		if(!$file_output->toBool())
+		{
+			return false;
+		}
+
+		$sticker_output = $this->_updateStickerFileInfo($origin_obj->sticker_file_srl, $file_srl, $result->source_filename, $result->url, $origin_obj->no);
+		if(!$sticker_output || !$sticker_output->toBool())
+		{
+			return false;
+		}
+
+		$this->_deleteFile($origin_obj->file_srl);
+		ImageProcessor::removeOriginal($result);
+		return true;
 	}
 
 	function _updateStickerFileInfo($sticker_file_srl, $file_srl, $file_name, $url, $no){
@@ -1528,11 +1489,11 @@ class stickerController extends sticker
 		$sticker_srl = $oSticker->sticker_srl;
 		$member_srl = $oSticker->member_srl;
 		$logged_info = Context::get('logged_info');
-		if($_SESSION['readed_sticker'][$sticker_srl]){
+		if(!empty($_SESSION['readed_sticker'][$sticker_srl])){
 			return false;
 		}
 
-		if($oSticker->ipaddress == $_SERVER['REMOTE_ADDR']){
+		if($oSticker->ipaddress == \RX_CLIENT_IP){
 			$_SESSION['readed_sticker'][$sticker_srl] = true;
 			return false;
 		}
@@ -1614,7 +1575,7 @@ class stickerController extends sticker
 			$point = null;
 		}
 
-		$ipaddress = isset($obj->ipaddress) && $obj->ipaddress ? $obj->ipaddress : $_SERVER['REMOTE_ADDR'];
+		$ipaddress = isset($obj->ipaddress) && $obj->ipaddress ? $obj->ipaddress : \RX_CLIENT_IP;
 		$regdate = isset($obj->regdate) && $obj->regdate ? $obj->regdate : date("YmdHis");
 
 		if(!$type){

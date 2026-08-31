@@ -6,6 +6,7 @@ use DB;
 use FileHandler;
 use FileModel;
 use Rhymix\Framework\Image;
+use Rhymix\Framework\Queue;
 use Rhymix\Framework\Security;
 use Rhymix\Framework\Storage;
 use RuntimeException;
@@ -22,6 +23,7 @@ class ImageProcessor
 	public const CODE_IMAGE_TOO_SMALL = 2;
 	public const CODE_IMAGE_TOO_LARGE = 3;
 	public const CODE_VIDEO_PROCESSING_UNAVAILABLE = 4;
+	public const ORIGINAL_GIF_DELETE_DELAY = 300;
 
 	/**
 	 * Check whether a sticker URL points to an MP4 file.
@@ -212,6 +214,67 @@ class ImageProcessor
 		if(!empty($result->changed) && $result->original_url !== $result->url && file_exists($result->original_url))
 		{
 			FileHandler::removeFile($result->original_url);
+		}
+	}
+
+	/**
+	 * Schedule deletion of a converted GIF after the sticker rows point to the MP4.
+	 *
+	 * @param int $sticker_file_srl Sticker file serial number.
+	 * @param int $file_srl Rhymix file serial number.
+	 * @param string $original_url Original GIF path.
+	 * @param string $converted_url Converted MP4 path.
+	 * @return void
+	 */
+	private static function scheduleOriginalGifDeletion(int $sticker_file_srl, int $file_srl, string $original_url, string $converted_url): void
+	{
+		if($original_url === '' || $converted_url === '' || !config('queue.enabled'))
+		{
+			return;
+		}
+
+		try
+		{
+			Queue::addTaskAt(time() + self::ORIGINAL_GIF_DELETE_DELAY, self::class . '::deleteOriginalGifAsync', (object)array(
+				'sticker_file_srl' => $sticker_file_srl,
+				'file_srl' => $file_srl,
+				'original_url' => $original_url,
+				'converted_url' => $converted_url,
+			));
+		}
+		catch(\Throwable $e)
+		{
+			// Keep the original GIF if scheduling fails. The converted MP4 remains valid.
+			\Rhymix\Framework\Debug::addEntry($e);
+		}
+	}
+
+	/**
+	 * Delete a converted GIF only if the same sticker slot still points to the expected MP4.
+	 *
+	 * @param object $args Queue arguments.
+	 * @return void
+	 */
+	public static function deleteOriginalGifAsync(object $args): void
+	{
+		if(empty($args->sticker_file_srl) || empty($args->file_srl) || empty($args->original_url) || empty($args->converted_url))
+		{
+			return;
+		}
+
+		$output = executeQuery('sticker.getStickerFileByStickerFileSrl', (object)array(
+			'sticker_file_srl' => intval($args->sticker_file_srl),
+		));
+		$current = $output->data ?? null;
+		if(!$output->toBool() || !$current || intval($current->file_srl) !== intval($args->file_srl) || (string)$current->url !== (string)$args->converted_url)
+		{
+			return;
+		}
+
+		$original_path = self::resolveLocalPath((string)$args->original_url);
+		if(file_exists($original_path))
+		{
+			FileHandler::removeFile($original_path);
 		}
 	}
 
@@ -442,7 +505,12 @@ class ImageProcessor
 
 			$oDB->commit();
 			$transaction_started = false;
-			self::removeOriginal($result);
+			self::scheduleOriginalGifDeletion(
+				$sticker_file_srl,
+				intval($args->file_srl),
+				$expected_url,
+				$stored_result->url
+			);
 			stickerModel::getInstance()->clearStickerCache(intval($args->sticker_srl));
 			self::updateConversionLog(
 				$sticker_file_srl,

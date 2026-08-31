@@ -11,6 +11,9 @@ use Rhymix\Modules\Sticker\Services\ImageProcessor;
  */
 class stickerController extends sticker
 {
+	/** @var array<int, array<int, array<int, int>>> Stickers awaiting post-save accounting. */
+	protected $pendingDocumentStickers = array();
+
 	function init(){
 		//직접적으로 sticker모듈이 로딩되었을 때만 적용됨.
 		$oStickerModel = stickerModel::getInstance();
@@ -82,33 +85,218 @@ class stickerController extends sticker
 		return new BaseObject();
 	}
 
-	function triggerBeforeInsertDocument(&$obj){
-		if(!$this->_isStickerModuleEnabled()){
-			return new BaseObject();
-		}
-
-		$obj->content = $this->_sanitizeDocumentStickerContent($obj->content);
+	/**
+	 * Validate and normalize stickers before inserting a document.
+	 *
+	 * @param object $obj Document arguments.
+	 * @return BaseObject
+	 */
+	public function triggerBeforeInsertDocument(&$obj)
+	{
+		return $this->_processDocumentStickers($obj, false);
 	}
 
-	function triggerBeforeUpdateDocument(&$obj){
-		if(!$this->_isStickerModuleEnabled()){
-			return new BaseObject();
-		}
-
-		$obj->content = $this->_sanitizeDocumentStickerContent($obj->content);
+	/**
+	 * Validate and normalize stickers before updating a document.
+	 *
+	 * @param object $obj Document arguments.
+	 * @return BaseObject
+	 */
+	public function triggerBeforeUpdateDocument(&$obj)
+	{
+		return $this->_processDocumentStickers($obj, true);
 	}
 
-	function _isStickerModuleEnabled(){
+	/**
+	 * Account for stickers after a document has been inserted.
+	 *
+	 * @param object $obj Document arguments.
+	 * @return BaseObject
+	 */
+	public function triggerAfterInsertDocument(&$obj)
+	{
+		return $this->_accountDocumentStickers($obj);
+	}
+
+	/**
+	 * Account for newly added stickers after a document has been updated.
+	 *
+	 * @param object $obj Document arguments.
+	 * @return BaseObject
+	 */
+	public function triggerAfterUpdateDocument(&$obj)
+	{
+		return $this->_accountDocumentStickers($obj);
+	}
+
+	/**
+	 * Replace editor sticker placeholders with canonical, validated image tags.
+	 *
+	 * @param object $obj Document arguments.
+	 * @param bool $is_update Whether an existing document is being updated.
+	 * @return BaseObject
+	 */
+	protected function _processDocumentStickers(object $obj, bool $is_update)
+	{
 		$oStickerModel = stickerModel::getInstance();
 		$module_config = $oStickerModel->getConfig();
+		if(($module_config->use ?? 'N') !== 'Y')
+		{
+			return new BaseObject();
+		}
 
-		return $module_config->use == 'Y';
+		$logged_info = Context::get('logged_info');
+		$member_srl = $logged_info ? intval($logged_info->member_srl) : 0;
+		$stickers = array();
+		$content = $this->_replaceUndefinedStickerSrlInContent((string)($obj->content ?? ''));
+		$content = preg_replace('/{@sticker:[0-9]+\|[0-9]+}/i', '', $content);
+		$content = preg_replace_callback(
+			'/<img\b[^>]*\bdata-rx-sticker(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?[^>]*>/i',
+			function($match) use (&$stickers, $member_srl, $logged_info)
+			{
+				if(!preg_match('/\bdata-rx-sticker\s*=\s*(["\'])([0-9]+)\|([0-9]+)\1/i', $match[0], $identity))
+				{
+					return '';
+				}
+
+				$sticker_srl = intval($identity[2]);
+				$sticker_file_srl = intval($identity[3]);
+				$is_admin = $logged_info && ($logged_info->is_admin ?? 'N') === 'Y';
+				if((!$is_admin && !$this->_checkFakeSticker($sticker_srl, $sticker_file_srl, $member_srl)) || !$this->_checkUsableSticker($sticker_srl))
+				{
+					return '';
+				}
+
+				$output = $this->_getStickerComment($sticker_file_srl);
+				if(!$output->toBool() || empty($output->data) || intval($output->data->sticker_srl) !== $sticker_srl)
+				{
+					return '';
+				}
+
+				$stickers[] = array($sticker_srl, $sticker_file_srl);
+				return $this->_documentStickerTag($output->data, $match[0]);
+			},
+			$content
+		);
+
+		$limit = max(0, intval($module_config->doc_max_sticker_count ?? 30));
+		if($limit && count($stickers) > $limit)
+		{
+			return new BaseObject(-1, 'msg_exceed_document_sticker_count');
+		}
+
+		$obj->content = $content;
+		$pending = $stickers;
+		if($is_update && !empty($obj->document_srl))
+		{
+			$document = DocumentModel::getDocument($obj->document_srl);
+			$old_stickers = $this->_extractDocumentStickerIds($document ? (string)$document->get('content') : '');
+			foreach($old_stickers as $identity)
+			{
+				$key = array_search($identity, $pending);
+				if($key !== false)
+				{
+					unset($pending[$key]);
+				}
+			}
+		}
+
+		$this->pendingDocumentStickers[spl_object_id($obj)] = array_values($pending);
+		return new BaseObject();
 	}
 
-	function _sanitizeDocumentStickerContent($content){
-		$content = $this->_replaceUndefinedStickerSrlInContent($content);
+	/**
+	 * Increase usage counters and write logs after a document save succeeds.
+	 *
+	 * @param object $obj Document arguments.
+	 * @return BaseObject
+	 */
+	protected function _accountDocumentStickers(object $obj)
+	{
+		$key = spl_object_id($obj);
+		$stickers = $this->pendingDocumentStickers[$key] ?? array();
+		unset($this->pendingDocumentStickers[$key]);
 
-		return preg_replace('/{@sticker:[0-9]+\|[0-9]+}/i', '', $content);
+		$logged_info = Context::get('logged_info');
+		$member_srl = $logged_info ? intval($logged_info->member_srl) : 0;
+		foreach($stickers as $identity)
+		{
+			$this->_increaseStickerUsedCount($identity[0], $identity[1], $member_srl);
+			$log = new stdClass();
+			$log->sticker_srl = $identity[0];
+			$log->sticker_file_srl = $identity[1];
+			$log->member_srl = $member_srl;
+			$log->document_srl = intval($obj->document_srl ?? 0);
+			$log->type = 'insertDocumentSticker';
+			$this->insertStickerLog($log);
+		}
+
+		return new BaseObject();
+	}
+
+	/**
+	 * Extract canonical sticker identities from stored document content.
+	 *
+	 * @param string $content Document content.
+	 * @return array<int, array<int, int>>
+	 */
+	protected function _extractDocumentStickerIds(string $content): array
+	{
+		$stickers = array();
+		preg_match_all('/\bdata-rx-sticker\s*=\s*(["\'])([0-9]+)\|([0-9]+)\1/i', $content, $matches, PREG_SET_ORDER);
+		foreach($matches as $match)
+		{
+			$stickers[] = array(intval($match[2]), intval($match[3]));
+		}
+
+		return $stickers;
+	}
+
+	/**
+	 * Build the canonical image tag stored in document content.
+	 *
+	 * @param object $data Sticker data.
+	 * @param string $source_tag Submitted image tag.
+	 * @return string
+	 */
+	protected function _documentStickerTag(object $data, string $source_tag): string
+	{
+		$width = 100;
+		$height = 100;
+		if(preg_match('/\bwidth\s*=\s*(["\']?)([0-9]+)\1/i', $source_tag, $match))
+		{
+			$width = min(100, max(24, intval($match[2])));
+		}
+		if(preg_match('/\bheight\s*=\s*(["\']?)([0-9]+)\1/i', $source_tag, $match))
+		{
+			$height = min(100, max(24, intval($match[2])));
+		}
+		if(preg_match('/\bstyle\s*=\s*(["\'])(.*?)\1/i', $source_tag, $match))
+		{
+			if(preg_match('/(?:^|;)\s*width\s*:\s*([0-9]+)px/i', $match[2], $size))
+			{
+				$width = min(100, max(24, intval($size[1])));
+			}
+			if(preg_match('/(?:^|;)\s*height\s*:\s*([0-9]+)px/i', $match[2], $size))
+			{
+				$height = min(100, max(24, intval($size[1])));
+			}
+		}
+
+		$is_video = ImageProcessor::isMp4((string)$data->url);
+		$src = $is_video ? ImageProcessor::getPosterUrl((string)$data->url) : (string)$data->url;
+		return sprintf(
+			'<img src="%s" alt="%s" width="%d" height="%d" style="width:%dpx;height:%dpx" data-rx-sticker="%d|%d" data-rx-sticker-type="%s">',
+			htmlspecialchars($src, ENT_QUOTES, 'UTF-8', false),
+			htmlspecialchars((string)$data->title, ENT_QUOTES, 'UTF-8', false),
+			$width,
+			$height,
+			$width,
+			$height,
+			intval($data->sticker_srl),
+			intval($data->sticker_file_srl),
+			$is_video ? 'video' : 'image'
+		);
 	}
 
 	function triggerBeforeInsertComment(&$obj){
@@ -212,7 +400,6 @@ class stickerController extends sticker
 		$content = $is_content_object ? $obj->content : $obj;
 
 		$content = $this->_replaceUndefinedStickerSrlInContent($content);
-		$content = $this->_replaceBlockedStickerImgInContent($content);
 
 		if(Context::get('document_srl')){
 			$temp_output = preg_replace_callback('/<!--BeforeComment\(([0-9]+),([0-9]+)\)-->.*?{@sticker:([0-9]+)\|([0-9]+)}.*?<!--AfterComment\([0-9]+,[0-9]+\)-->/s', array($this, 'stickerCommentCallback'), $content);
@@ -220,6 +407,13 @@ class stickerController extends sticker
 				$content = $temp_output;
 			}
 		}
+
+		$content = preg_replace_callback(
+			'/<a\b[^>]*>\s*<img\b[^>]*\bdata-rx-sticker(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?[^>]*>\s*<\/a>|<img\b[^>]*\bdata-rx-sticker(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?[^>]*>/i',
+			array($this, 'stickerDocumentCallback'),
+			$content
+		);
+		$content = $this->_replaceBlockedStickerImgInContent($content);
 
 		if($is_content_object){
 			$obj->content = $content;
@@ -1464,6 +1658,76 @@ class stickerController extends sticker
 		}
 
 		return new BaseObject();
+	}
+
+	/**
+	 * Render a stored document sticker using its current media and status.
+	 *
+	 * @param array<int, string> $matches Regular expression matches.
+	 * @return string
+	 */
+	public function stickerDocumentCallback(array $matches): string
+	{
+		if(!preg_match('/\bdata-rx-sticker\s*=\s*(["\'])([0-9]+)\|([0-9]+)\1/i', $matches[0], $identity))
+		{
+			return $this->_getStickerDeleteMsg();
+		}
+
+		$output = $this->_getStickerComment(intval($identity[3]));
+		if(
+			!$output->toBool() ||
+			empty($output->data) ||
+			intval($output->data->sticker_srl) !== intval($identity[2]) ||
+			($output->data->status ?? 'STOP') === 'STOP'
+		)
+		{
+			return $this->_getStickerDeleteMsg();
+		}
+
+		$width = preg_match('/\bwidth\s*=\s*(["\']?)([0-9]+)\1/i', $matches[0], $size) ? min(100, max(24, intval($size[2]))) : 100;
+		$height = preg_match('/\bheight\s*=\s*(["\']?)([0-9]+)\1/i', $matches[0], $size) ? min(100, max(24, intval($size[2]))) : 100;
+		$is_video = ImageProcessor::isMp4((string)$output->data->url);
+		$title = htmlspecialchars((string)$output->data->title, ENT_QUOTES, 'UTF-8', false);
+		$sticker_url = htmlspecialchars(
+			getNotEncodedUrl('', 'mid', 'sticker', 'sticker_srl', $output->data->sticker_srl),
+			ENT_QUOTES,
+			'UTF-8',
+			false
+		);
+
+		if($is_video)
+		{
+			$media = sprintf(
+				'<video src="%s" poster="%s" width="%d" height="%d" autoplay muted loop playsinline preload="metadata" style="width:100%%;height:100%%;display:block" data-rx-sticker="%d|%d" data-rx-sticker-type="video"></video>',
+				htmlspecialchars((string)$output->data->url, ENT_QUOTES, 'UTF-8', false),
+				htmlspecialchars(ImageProcessor::getPosterUrl((string)$output->data->url), ENT_QUOTES, 'UTF-8', false),
+				$width,
+				$height,
+				intval($output->data->sticker_srl),
+				intval($output->data->sticker_file_srl)
+			);
+		}
+		else
+		{
+			$media = sprintf(
+				'<img src="%s" alt="%s" width="%d" height="%d" style="width:100%%;height:100%%;display:block" data-rx-sticker="%d|%d" data-rx-sticker-type="image">',
+				htmlspecialchars((string)$output->data->url, ENT_QUOTES, 'UTF-8', false),
+				$title,
+				$width,
+				$height,
+				intval($output->data->sticker_srl),
+				intval($output->data->sticker_file_srl)
+			);
+		}
+
+		return sprintf(
+			'<a href="%s" title="%s" style="display:inline-block;width:%dpx;height:%dpx;vertical-align:middle;line-height:0">%s</a>',
+			$sticker_url,
+			$title,
+			$width,
+			$height,
+			$media
+		);
 	}
 
 	/**

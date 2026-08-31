@@ -5,10 +5,12 @@
 	</tables>
 	<columns>
 		<column name="sticker_files.url" />
+		<column name="sticker_files.sticker_file_srl" />
 		<column name="sticker_files.file_name" />
 		<column name="sticker_files.no" />
 		<column name="sticker.sticker_srl" />
 		<column name="sticker.title" />
+		<column name="sticker.status" />
 	</columns>
 	<conditions>
 		<condition operation="equal" column="sticker_files.sticker_file_srl" var="sticker_file_srl" />

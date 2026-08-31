@@ -69,6 +69,7 @@ class sticker extends ModuleObject
 			'file_ext' => 'jpg,jpeg,png,gif,webp,mp4',
 			'cmt_allow_modify' => 'Y',
 			'cmt_max_sticker_count' => 0,
+			'doc_max_sticker_count' => 30,
 		);
 		$config = $oModuleModel->getModuleConfig('sticker') ?: new stdClass();
 		foreach($defaults as $key => $value)
@@ -111,7 +112,7 @@ class sticker extends ModuleObject
 	{
 		$oModuleModel = moduleModel::getInstance();
 		$config = $oModuleModel->getModuleConfig('sticker');
-		$required_keys = array('browser_subtitle', 'quick_tags', 'notify_message_type', 'gif2mp4', 'skin_migrated', 'list_count');
+		$required_keys = array('browser_subtitle', 'quick_tags', 'notify_message_type', 'gif2mp4', 'skin_migrated', 'list_count', 'doc_max_sticker_count');
 		foreach($required_keys as $key){
 			if(!$config || !isset($config->{$key})){
 				return true;
@@ -138,6 +139,7 @@ class sticker extends ModuleObject
 		$config->gif2mp4 = isset($config->gif2mp4) ? $config->gif2mp4 : 'N';
 		$config->skin_migrated = 'Y';
 		$config->list_count = isset($config->list_count) ? min(100, max(1, (int)$config->list_count)) : 12;
+		$config->doc_max_sticker_count = isset($config->doc_max_sticker_count) ? max(0, (int)$config->doc_max_sticker_count) : 30;
 		$file_extensions = array_filter(array_map('trim', explode(',', (string)($config->file_ext ?? ''))));
 		$normalized_extensions = array_map('strtolower', $file_extensions);
 		foreach(array('jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4') as $extension)

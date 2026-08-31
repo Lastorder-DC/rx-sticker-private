@@ -39,6 +39,7 @@ class stickerAdminController extends sticker
 		$config->gif2mp4 = isset($config->gif2mp4) ? ($config->gif2mp4 === 'Y' ? 'Y' : 'N') : ($current_config->gif2mp4 ?? 'N');
 		$config->skin_migrated = $current_config->skin_migrated ?? 'Y';
 		$config->list_count = min(100, max(1, (int)($config->list_count ?? 12)));
+		$config->doc_max_sticker_count = max(0, (int)($config->doc_max_sticker_count ?? 30));
 		if($config->gif2mp4 === 'Y' && !ImageProcessor::isFfmpegAvailable())
 		{
 			return new BaseObject(-1, 'msg_stkr_cannot_use_ffmpeg');

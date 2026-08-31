@@ -350,6 +350,7 @@ class stickerAdminView extends sticker
 		$this->module_config->notify_message_type = $this->module_config->notify_message_type ?? 'text';
 		$this->module_config->gif2mp4 = $this->module_config->gif2mp4 ?? 'N';
 		$this->module_config->list_count = $this->module_config->list_count ?? 12;
+		$this->module_config->doc_max_sticker_count = $this->module_config->doc_max_sticker_count ?? 30;
 		Context::set('is_ffmpeg', Rhymix\Modules\Sticker\Services\ImageProcessor::isFfmpegAvailable());
 		Context::set('is_queue_enabled', (bool)config('queue.enabled'));
 

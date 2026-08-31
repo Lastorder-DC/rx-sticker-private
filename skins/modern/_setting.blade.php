@@ -23,6 +23,8 @@
 		'pointRange' => $lang->stkr_point_range,
 		'delete' => $lang->cmd_delete,
 		'replace' => $lang->stkr_replace,
+		'movePrevious' => $lang->stkr_move_previous,
+		'moveNext' => $lang->stkr_move_next,
 		'main' => $lang->stkr_main,
 		'setMain' => $lang->stkr_set_main,
 	];

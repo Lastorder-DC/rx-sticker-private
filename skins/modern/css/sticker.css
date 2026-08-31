@@ -685,6 +685,18 @@ body.color_scheme_dark .stk .stk-head__notice ul > li > a:focus {
 	overflow: hidden;
 	border-radius: var(--stk-radius);
 	background: var(--stk-surface);
+	cursor: grab;
+	transition: opacity .12s, box-shadow .12s, transform .12s;
+}
+
+.stk-uploader__item.is-dragging {
+	opacity: .45;
+	cursor: grabbing;
+}
+
+.stk-uploader__item.is-drag-over {
+	box-shadow: 0 0 0 3px var(--stk-accent);
+	transform: scale(1.03);
 }
 
 .stk-uploader__item img,
@@ -746,10 +758,23 @@ body.color_scheme_dark .stk .stk-head__notice ul > li > a:focus {
 	opacity: 1;
 }
 
-.stk-uploader__replace {
+.stk-uploader__actions {
 	position: absolute;
 	top: 4px;
 	left: 4px;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 4px;
+}
+
+.stk-uploader__order-group {
+	display: flex;
+	gap: 4px;
+}
+
+.stk-uploader__order,
+.stk-uploader__replace {
 	padding: 3px 8px;
 	border: 0;
 	border-radius: 4px;
@@ -758,12 +783,20 @@ body.color_scheme_dark .stk .stk-head__notice ul > li > a:focus {
 	font-size: 11px;
 	font-family: inherit;
 	cursor: pointer;
-	opacity: 0;
-	transition: opacity .12s;
 }
 
-.stk-uploader__item:hover .stk-uploader__replace {
-	opacity: 1;
+.stk-uploader__order {
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	font-size: 15px;
+	font-weight: 700;
+	line-height: 24px;
+}
+
+.stk-uploader__order:disabled {
+	cursor: default;
+	opacity: .35;
 }
 
 .stk-uploader__guide {

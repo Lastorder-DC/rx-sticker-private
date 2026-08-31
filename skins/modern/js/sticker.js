@@ -180,6 +180,7 @@
 
 		this.seq = 0;
 		this.replaceTarget = null;
+		this.dragId = null;
 		this.items = this._readExistingItems();
 
 		this._bind();
@@ -197,6 +198,7 @@
 				id: 'e' + (self.seq++),
 				kind: 'existing',
 				no: no,
+				fileSrl: parseInt(node.getAttribute('data-file-srl'), 10),
 				url: node.querySelector('img, video').getAttribute('src'),
 				main: no === 0,
 				removable: node.getAttribute('data-removable') === '1',
@@ -207,6 +209,13 @@
 
 	StickerUploader.prototype._bind = function() {
 		var self = this;
+		var isExternalFileDrag = function(e) {
+			var types = e.dataTransfer && e.dataTransfer.types;
+			if (!types) {
+				return false;
+			}
+			return Array.prototype.indexOf.call(types, 'Files') !== -1;
+		};
 
 		this.picker.addEventListener('change', function() {
 			self.add(this.files);
@@ -228,8 +237,61 @@
 			}
 		});
 
+		this.list.addEventListener('dragstart', function(e) {
+			var item = e.target.closest('.stk-uploader__item');
+			if (!item || e.target.closest('[data-action]')) {
+				e.preventDefault();
+				return;
+			}
+
+			self.replaceTarget = null;
+			self.picker.multiple = true;
+			self.dragId = item.getAttribute('data-id');
+			item.classList.add('is-dragging');
+			try {
+				e.dataTransfer.effectAllowed = 'move';
+				e.dataTransfer.setData('text/plain', self.dragId);
+			} catch (ignore) {}
+		});
+
+		this.list.addEventListener('dragover', function(e) {
+			var item = e.target.closest('.stk-uploader__item');
+			if (!self.dragId || !item || item.getAttribute('data-id') === self.dragId) {
+				return;
+			}
+
+			e.preventDefault();
+			e.stopPropagation();
+			self._clearDragOver();
+			item.classList.add('is-drag-over');
+			try {
+				e.dataTransfer.dropEffect = 'move';
+			} catch (ignore) {}
+		});
+
+		this.list.addEventListener('drop', function(e) {
+			var item = e.target.closest('.stk-uploader__item');
+			if (!self.dragId || !item) {
+				return;
+			}
+
+			e.preventDefault();
+			e.stopPropagation();
+			self.reorder(self.dragId, item.getAttribute('data-id'));
+			self.dragId = null;
+			self._clearDragState();
+		});
+
+		this.list.addEventListener('dragend', function() {
+			self.dragId = null;
+			self._clearDragState();
+		});
+
 		['dragenter', 'dragover'].forEach(function(name) {
 			self.root.addEventListener(name, function(e) {
+				if (!isExternalFileDrag(e)) {
+					return;
+				}
 				e.preventDefault();
 				self.root.classList.add('is-dragover');
 			});
@@ -237,6 +299,9 @@
 
 		['dragleave', 'drop'].forEach(function(name) {
 			self.root.addEventListener(name, function(e) {
+				if (!isExternalFileDrag(e)) {
+					return;
+				}
 				e.preventDefault();
 				if (name === 'dragleave' && self.root.contains(e.relatedTarget)) {
 					return;
@@ -246,6 +311,9 @@
 		});
 
 		this.root.addEventListener('drop', function(e) {
+			if (!isExternalFileDrag(e)) {
+				return;
+			}
 			self.replaceTarget = null;
 			self.add(e.dataTransfer.files);
 		});
@@ -296,6 +364,8 @@
 				id: 'n' + (self.seq++),
 				kind: 'new',
 				no: null,
+				fileSrl: null,
+				uploadNo: null,
 				url: URL.createObjectURL(file),
 				main: false,
 				removable: true,
@@ -317,9 +387,63 @@
 
 	StickerUploader.prototype.setMain = function(id) {
 		var target = this._find(id);
-
-		this.items.forEach(function(item) { item.main = (item === target); });
+		var index = this.items.indexOf(target);
+		if (index > 0) {
+			this.items.splice(index, 1);
+			this.items.unshift(target);
+		}
 		this.render();
+	};
+
+	StickerUploader.prototype.reorder = function(sourceId, targetId) {
+		var source = this._find(sourceId);
+		var target = this._find(targetId);
+		var sourceIndex = this.items.indexOf(source);
+		var targetIndex = this.items.indexOf(target);
+
+		if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === targetIndex) {
+			return;
+		}
+
+		this.items.splice(sourceIndex, 1);
+		this.items.splice(targetIndex, 0, source);
+		this.render();
+	};
+
+	StickerUploader.prototype.movePrevious = function(id) {
+		var item = this._find(id);
+		var index = this.items.indexOf(item);
+		if (index <= 0) {
+			return;
+		}
+
+		this.items[index] = this.items[index - 1];
+		this.items[index - 1] = item;
+		this.render();
+	};
+
+	StickerUploader.prototype.moveNext = function(id) {
+		var item = this._find(id);
+		var index = this.items.indexOf(item);
+		if (index === -1 || index >= this.items.length - 1) {
+			return;
+		}
+
+		this.items[index] = this.items[index + 1];
+		this.items[index + 1] = item;
+		this.render();
+	};
+
+	StickerUploader.prototype._clearDragState = function() {
+		Array.prototype.forEach.call(this.list.querySelectorAll('.is-dragging, .is-drag-over'), function(item) {
+			item.classList.remove('is-dragging', 'is-drag-over');
+		});
+	};
+
+	StickerUploader.prototype._clearDragOver = function() {
+		Array.prototype.forEach.call(this.list.querySelectorAll('.is-drag-over'), function(item) {
+			item.classList.remove('is-drag-over');
+		});
 	};
 
 	StickerUploader.prototype.replace = function(id) {
@@ -338,7 +462,7 @@
 		}
 
 		if (!target.removable) {
-			alert(text('requiredImageNoDelete', 'A required image cannot be removed. Click it to replace it.'));
+			alert(text('requiredImageNoDelete', 'A required image cannot be removed. Use the Replace button to select another file.'));
 			return;
 		}
 
@@ -370,7 +494,11 @@
 		var self = this;
 		var html = '';
 
-		this.items.forEach(function(item) {
+		this.items.forEach(function(item, index) {
+			item.main = index === 0;
+		});
+
+		this.items.forEach(function(item, index) {
 			var classes = ['stk-uploader__item'];
 			var safeUrl = escapeHtml(item.url);
 			if (item.main) {
@@ -380,7 +508,7 @@
 				classes.push('is-existing');
 			}
 
-			html += '<li class="' + classes.join(' ') + '" data-id="' + item.id + '">';
+			html += '<li class="' + classes.join(' ') + '" data-id="' + item.id + '" draggable="true">';
 
 			if ((item.file && (item.file.type === 'video/mp4' || item.file.type === 'application/mp4' || item.file.type === 'video/x-m4v')) || /\.mp4$/i.test((item.file && item.file.name) || item.url)) {
 				html += '<video src="' + safeUrl + '" poster="' + escapeHtml(item.url.slice(0, -4) + '.webp') + '" autoplay muted loop playsinline></video>';
@@ -393,15 +521,21 @@
 				html += '<button type="button" class="stk-uploader__remove" data-action="remove" title="' + escapeHtml(text('delete', 'Delete')) + '">&times;</button>';
 			}
 
+			html += '<span class="stk-uploader__actions">';
+			html += '<span class="stk-uploader__order-group">';
+			html += '<button type="button" class="stk-uploader__order" data-action="movePrevious" title="' + escapeHtml(text('movePrevious', 'Move left')) + '" aria-label="' + escapeHtml(text('movePrevious', 'Move left')) + '"' + (index === 0 ? ' disabled' : '') + '>&lt;</button>';
+			html += '<button type="button" class="stk-uploader__order" data-action="moveNext" title="' + escapeHtml(text('moveNext', 'Move right')) + '" aria-label="' + escapeHtml(text('moveNext', 'Move right')) + '"' + (index === self.items.length - 1 ? ' disabled' : '') + '>&gt;</button>';
+			html += '</span>';
 			if (item.kind === 'existing') {
 				html += '<button type="button" class="stk-uploader__replace" data-action="replace">' + escapeHtml(text('replace', 'Replace')) + '</button>';
 			}
+			html += '</span>';
 
 			if (item.main) {
 				html += '<span class="stk-uploader__badge">' + escapeHtml(text('main', 'Main')) + '</span>';
 			}
 			else if (self.mode === 'new') {
-				/* Main image selection is flexible on create; slot 0 can only be replaced on edit. */
+				/* The main image can also be changed by dragging a file into the first position. */
 				html += '<button type="button" class="stk-uploader__badge stk-uploader__badge--action" data-action="setMain">' + escapeHtml(text('setMain', 'Set as main')) + '</button>';
 			}
 
@@ -426,6 +560,9 @@
 			if (item.kind === 'existing') {
 				used[item.no] = true;
 			}
+			else {
+				item.uploadNo = null;
+			}
 		});
 
 		this.items.forEach(function(item) {
@@ -438,14 +575,26 @@
 				name = item.main ? 'sticker_main_file' : 'sticker_file[]';
 			} else if (item.kind === 'existing') {
 				name = item.no === 0 ? 'sticker_main_file' : 'sticker_file_' + item.no;
-			} else if (item.main) {
-				name = 'sticker_main_file';
 			} else {
-				name = 'sticker_file_' + self._takeSlot(used);
+				item.uploadNo = self._takeSlot(used);
+				name = 'sticker_file_' + item.uploadNo;
 			}
 
 			self.inputs.appendChild(self._makeInput(name, item.file));
 		});
+
+		if (this.mode === 'edit') {
+			var order = this.items.map(function(item) {
+				return item.kind === 'existing'
+					? { sticker_file_srl: item.fileSrl }
+					: { upload_no: item.uploadNo };
+			});
+			var orderInput = document.createElement('input');
+			orderInput.type = 'hidden';
+			orderInput.name = 'sticker_file_order';
+			orderInput.value = JSON.stringify(order);
+			this.inputs.appendChild(orderInput);
+		}
 	};
 
 	StickerUploader.prototype._takeSlot = function(used) {

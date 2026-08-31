@@ -1313,6 +1313,15 @@ class stickerController extends sticker
 			} // END FOR
 		}
 
+		if(!empty($obj->sticker_file_order))
+		{
+			$output = $this->_updateStickerFileOrder($sticker_srl, $obj->sticker_file_order);
+			if(!$output->toBool())
+			{
+				return $output;
+			}
+		}
+
 		$file_count = $this->_getStickerFileCount($sticker_srl);
 
 		$tag = $this->_checkCorrectTag(cut_str(htmlspecialchars(strip_tags($obj->tags), ENT_QUOTES, 'UTF-8', false), 150));
@@ -1373,6 +1382,88 @@ class stickerController extends sticker
 		}
 
 		return ($mime_type === '' || $mime_type === 'application/octet-stream') && preg_match('/\.mp4$/i', (string)($file['name'] ?? '')) === 1;
+	}
+
+	/**
+	 * Apply the file order submitted by the modern uploader.
+	 *
+	 * Existing files are identified by their primary key. Files uploaded with the same
+	 * request are identified by the temporary free slot selected by the uploader.
+	 * Every current sticker file must occur exactly once in the submitted order.
+	 *
+	 * @param int $sticker_srl Sticker serial number.
+	 * @param string $serialized_order JSON-encoded file identifiers.
+	 * @return BaseObject
+	 */
+	private function _updateStickerFileOrder($sticker_srl, $serialized_order)
+	{
+		$order = json_decode((string)$serialized_order, true);
+		if(!is_array($order))
+		{
+			return new BaseObject(-1, 'msg_invalid_request');
+		}
+
+		$args = new stdClass();
+		$args->sticker_srl = intval($sticker_srl);
+		$output = executeQueryArray('sticker.getStickerImage', $args);
+		if(!$output->toBool())
+		{
+			return $output;
+		}
+
+		$files = is_array($output->data) ? $output->data : array();
+		if(count($order) !== count($files))
+		{
+			return new BaseObject(-1, 'msg_invalid_request');
+		}
+
+		$files_by_srl = array();
+		$files_by_no = array();
+		foreach($files as $file)
+		{
+			$files_by_srl[intval($file->sticker_file_srl)] = $file;
+			$files_by_no[intval($file->no)] = $file;
+		}
+
+		$ordered_files = array();
+		$used_file_srls = array();
+		foreach($order as $identifier)
+		{
+			$file = null;
+			if(is_array($identifier) && isset($identifier['sticker_file_srl']))
+			{
+				$file_srl = intval($identifier['sticker_file_srl']);
+				$file = $files_by_srl[$file_srl] ?? null;
+			}
+			elseif(is_array($identifier) && isset($identifier['upload_no']))
+			{
+				$upload_no = intval($identifier['upload_no']);
+				$file = $files_by_no[$upload_no] ?? null;
+			}
+
+			if(!$file || isset($used_file_srls[$file->sticker_file_srl]))
+			{
+				return new BaseObject(-1, 'msg_invalid_request');
+			}
+
+			$used_file_srls[$file->sticker_file_srl] = true;
+			$ordered_files[] = $file;
+		}
+
+		foreach($ordered_files as $no => $file)
+		{
+			$args = new stdClass();
+			$args->sticker_srl = intval($sticker_srl);
+			$args->sticker_file_srl = intval($file->sticker_file_srl);
+			$args->no = $no;
+			$output = executeQuery('sticker.updateStickerFileOrder', $args);
+			if(!$output->toBool())
+			{
+				return $output;
+			}
+		}
+
+		return new BaseObject();
 	}
 
 	/**

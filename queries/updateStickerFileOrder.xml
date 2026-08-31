@@ -1,0 +1,12 @@
+<query id="updateStickerFileOrder" action="update">
+	<tables>
+		<table name="sticker_files" />
+	</tables>
+	<columns>
+		<column name="no" var="no" filter="number" notnull="notnull" />
+	</columns>
+	<conditions>
+		<condition operation="equal" column="sticker_srl" var="sticker_srl" filter="number" notnull="notnull" />
+		<condition operation="equal" column="sticker_file_srl" var="sticker_file_srl" filter="number" notnull="notnull" pipe="and" />
+	</conditions>
+</query>

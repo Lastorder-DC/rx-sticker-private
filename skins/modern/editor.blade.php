@@ -74,6 +74,7 @@
 				<li class="stk-uploader__item{{ $no === 0 ? ' is-main' : '' }}"
 					data-kind="existing"
 					data-no="{{ $no }}"
+					data-file-srl="{{ $file->sticker_file_srl }}"
 					data-removable="{{ $no > $config->minUploads ? '1' : '0' }}">
 					@include('_media', ['url' => $file->url, 'alt' => $file->file_name])
 				</li>

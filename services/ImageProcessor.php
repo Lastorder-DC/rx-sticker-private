@@ -9,8 +9,8 @@ use Rhymix\Framework\Image;
 use Rhymix\Framework\Queue;
 use Rhymix\Framework\Security;
 use Rhymix\Framework\Storage;
+use Rhymix\Modules\Sticker\Models\Sticker as StickerModel;
 use RuntimeException;
-use stickerModel;
 
 /**
  * Validate and process sticker images and MP4 videos.
@@ -439,7 +439,7 @@ class ImageProcessor
 				return;
 			}
 
-			$module_config = stickerModel::getInstance()->getConfig();
+			$module_config = StickerModel::getInstance()->getConfig();
 			if(($module_config->gif2mp4 ?? 'N') !== 'Y')
 			{
 				self::updateConversionLog($sticker_file_srl, 'SKIPPED', 'conversion_disabled', null, $original_size);
@@ -511,7 +511,7 @@ class ImageProcessor
 				$expected_url,
 				$stored_result->url
 			);
-			stickerModel::getInstance()->clearStickerCache(intval($args->sticker_srl));
+			StickerModel::getInstance()->clearStickerCache(intval($args->sticker_srl));
 			self::updateConversionLog(
 				$sticker_file_srl,
 				'SUCCESS',
@@ -815,10 +815,9 @@ class ImageProcessor
 			return self::unchangedResult($uploaded_filename, $validated);
 		}
 
-		require_once dirname(__DIR__) . '/sticker.lib.php';
 		$directory = substr($uploaded_filename, 0, strrpos($uploaded_filename, '/') + 1);
 		$output_name = $directory . Security::getRandom(32, 'hex') . '.gif';
-		if(!resizeGIF($uploaded_filename, $output_name, $maximum_size, $maximum_size))
+		if(!GifResizer::resize($uploaded_filename, $output_name, $maximum_size, $maximum_size))
 		{
 			return self::unchangedResult($uploaded_filename, $validated);
 		}

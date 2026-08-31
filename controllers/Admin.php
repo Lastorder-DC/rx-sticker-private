@@ -1,23 +1,35 @@
 <?php
 /*! Copyright (C) 2016 BGM STORAGE. All rights reserved. */
+
+namespace Rhymix\Modules\Sticker\Controllers;
+
+use BaseObject;
+use Context;
+use ModuleController;
+use ModuleModel;
 use Rhymix\Framework\Queue;
+use Rhymix\Framework\Debug;
+use Rhymix\Modules\Sticker\Models\Sticker as StickerModel;
 use Rhymix\Modules\Sticker\Services\ImageProcessor;
+use stdClass;
+use Throwable;
+
 /**
- * @class  stickerAdminController
+ * Handle sticker administration actions.
+ *
  * @author Huhani (mmia268@dnip.co.kr)
- * @brief  Sticker module admin controller class.
  */
 
-class stickerAdminController extends sticker
+class Admin extends Sticker
 {
-	function init()
+	public function init()
 	{
 	}
 
-	function procStickerAdminConfig()
+	public function procStickerAdminConfig()
 	{
 
-		$oModuleController = moduleController::getInstance();
+		$oModuleController = ModuleController::getInstance();
 
 		$config = Context::getRequestVars();
 		getDestroyXeVars($config);
@@ -34,7 +46,7 @@ class stickerAdminController extends sticker
 				$config->{$key} = '';
 			}
 		}
-		$current_config = stickerModel::getInstance()->getConfig();
+		$current_config = StickerModel::getInstance()->getConfig();
 		$config->notify_message_type = ($config->notify_message_type ?? 'text') === 'none' ? 'none' : 'text';
 		$config->gif2mp4 = isset($config->gif2mp4) ? ($config->gif2mp4 === 'Y' ? 'Y' : 'N') : ($current_config->gif2mp4 ?? 'N');
 		$config->skin_migrated = $current_config->skin_migrated ?? 'Y';
@@ -46,7 +58,7 @@ class stickerAdminController extends sticker
 		}
 
 		if(!empty($config->browser_title)){
-			$oModuleModel = moduleModel::getInstance();
+			$oModuleModel = ModuleModel::getInstance();
 			$sticker_info = $oModuleModel->getModuleInfoByMid('sticker');
 			$sticker_info->browser_title = $config->browser_title;
 			unset($config->browser_title);
@@ -85,7 +97,7 @@ class stickerAdminController extends sticker
 			return new BaseObject(-1, 'msg_stkr_queue_required');
 		}
 
-		$oStickerModel = stickerModel::getInstance();
+		$oStickerModel = StickerModel::getInstance();
 		$module_config = $oStickerModel->getConfig();
 		if(($module_config->gif2mp4 ?? 'N') !== 'Y')
 		{
@@ -134,7 +146,7 @@ class stickerAdminController extends sticker
 			catch(Throwable $e)
 			{
 				ImageProcessor::updateConversionLog(intval($row->sticker_file_srl), 'FAILED', 'queue_add_failed');
-				Rhymix\Framework\Debug::addEntry($e);
+				Debug::addEntry($e);
 			}
 		}
 
@@ -208,7 +220,7 @@ class stickerAdminController extends sticker
 		catch(Throwable $e)
 		{
 			ImageProcessor::updateConversionLog($sticker_file_srl, 'FAILED', 'queue_add_failed');
-			Rhymix\Framework\Debug::addEntry($e);
+			Debug::addEntry($e);
 			return new BaseObject(-1, 'msg_stkr_gif_queue_failed');
 		}
 
@@ -217,16 +229,16 @@ class stickerAdminController extends sticker
 		$this->setRedirectUrl($returnUrl);
 	}
 
-	function procStickerAdminDesign(){
+	public function procStickerAdminDesign(){
 
 		if(Context::getRequestMethod() === 'GET')
 		{
 			return new BaseObject(-1, 'msg_invalid_request');
 		}
 
-		$oModuleController = moduleController::getInstance();
+		$oModuleController = ModuleController::getInstance();
 
-		$oModuleModel = moduleModel::getInstance();
+		$oModuleModel = ModuleModel::getInstance();
 		$sticker_info = $oModuleModel->getModuleInfoByMid('sticker');
 		if($sticker_info){
 			$skin_list = $oModuleModel->getSkins($this->module_path);
@@ -250,7 +262,7 @@ class stickerAdminController extends sticker
 
 	}
 
-	function procStickerAdminUpdate(){
+	public function procStickerAdminUpdate(){
 
 		$sticker_srl = Context::get('sticker_srl');
 		$config = Context::getRequestVars();
@@ -262,7 +274,7 @@ class stickerAdminController extends sticker
 		unset($config->module);
 		unset($config->ruleset);
 
-		$oStickerModel = stickerModel::getInstance();
+		$oStickerModel = StickerModel::getInstance();
 		$oSticker = $oStickerModel->getSticker($sticker_srl);
 		if(!$oSticker){
 			return new BaseObject(-1,'msg_invalid_sticker');
@@ -346,19 +358,18 @@ class stickerAdminController extends sticker
 
 	}
 
-	function procStickerAdminDelete(){
+	public function procStickerAdminDelete(){
 
 		$sticker_srl = Context::get('sticker_srl');
-		$oStickerModel = stickerModel::getInstance();
+		$oStickerModel = StickerModel::getInstance();
 		$oSticker = $oStickerModel->getSticker($sticker_srl);
 		if(!$oSticker){
 			return new BaseObject(-1,'msg_invalid_sticker');
 		}
 
-		$oStickerController = stickerController::getInstance();
-		$oStickerController->_deleteSticker($sticker_srl);
-		$oStickerController->_deleteStickerFiles($sticker_srl);
-		$oStickerController->_deleteStickerBuyByStickerSrl($sticker_srl);
+		$this->_deleteSticker($sticker_srl);
+		$this->_deleteStickerFiles($sticker_srl);
+		$this->_deleteStickerBuyByStickerSrl($sticker_srl);
 
 		$this->setMessage('success_deleted');
 		$returnUrl = Context::get('success_return_url') ? Context::get('success_return_url') : getNotEncodedUrl('', 'module', 'admin', 'act', 'dispStickerAdminStickerList');
@@ -366,7 +377,7 @@ class stickerAdminController extends sticker
 
 	}
 
-	function procStickerAdminBuyUpdate(){
+	public function procStickerAdminBuyUpdate(){
 		$idx = Context::get('idx');
 		$config = Context::getRequestVars();
 		getDestroyXeVars($config);
@@ -416,7 +427,7 @@ class stickerAdminController extends sticker
 
 	}
 
-	function procStickerAdminBuyDelete(){
+	public function procStickerAdminBuyDelete(){
 		$idx = Context::get('idx');
 		$args = new stdClass();
 		$args->idx = $idx;
@@ -437,7 +448,7 @@ class stickerAdminController extends sticker
 
 	}
 
-	function procStickerAdminLogClear(){
+	public function procStickerAdminLogClear(){
 		$select_date = intval(Context::get('select_date'));
 		$date = date("YmdHis", mktime(date('H'), date('i'), date('s'), date('m'), date('d') - $select_date, date('Y')));
 
@@ -452,5 +463,3 @@ class stickerAdminController extends sticker
 	}
 }
 
-/* End of file sticker.admin.controller.php */
-/* Location: ./modules/sticker/sticker.admin.controller.php */

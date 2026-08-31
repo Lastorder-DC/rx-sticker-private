@@ -1,0 +1,351 @@
+<?php
+/*! Copyright (C) 2016 BGM STORAGE. All rights reserved. */
+
+namespace Rhymix\Modules\Sticker\Controllers;
+
+use BaseObject;
+use Context;
+use EditorModel;
+use Mobile;
+use ModuleModel;
+use Rhymix\Modules\Sticker\Models\Sticker as StickerModel;
+use stdClass;
+
+/**
+ * Render public sticker pages.
+ *
+ * @author Huhani (mmia268@gmail.com)
+ */
+
+class Display extends Sticker
+{
+	public function init()
+	{
+		Context::set('config', $this->module_config);
+
+		if($this->mid != "sticker"){
+			$oModuleModel = ModuleModel::getInstance();
+			$sticker_info = $oModuleModel->getModuleInfoByMid('sticker');
+			$this->module_info = $sticker_info;
+		}
+
+		// Delegate skin and mobile skin resolution to the Rhymix core so that
+		// the selected skin and its settings always refer to the same directory.
+		$this->setLayoutAndTemplatePaths(Mobile::isFromMobilePhone() ? 'M' : 'P', $this->module_info);
+
+	}
+
+	/**
+	 * Check whether the current member may view stored IP addresses.
+	 *
+	 * @return bool
+	 */
+	private function canViewIp(): bool
+	{
+		$logged_info = Context::get('logged_info');
+		return $logged_info && (int)$logged_info->member_srl === 4;
+	}
+
+	/**
+	 * Remove IP addresses before data is exposed through Context.
+	 *
+	 * @param object|array|null $data
+	 * @return void
+	 */
+	private function redactIpAddresses($data): void
+	{
+		if($this->canViewIp())
+		{
+			return;
+		}
+
+		foreach(is_array($data) ? $data : array($data) as $item)
+		{
+			if(is_object($item))
+			{
+				unset($item->ipaddress);
+			}
+		}
+	}
+
+	public function dispStickerList(){
+		$search_target = (string)Context::get('search_target');
+		$search_keyword = (string)Context::get('search_keyword');
+		$sort = Context::get('sort') === 'popular' ? 'popular' : 'recent';
+
+		$sticker_srl = Context::get('sticker_srl');
+		if($sticker_srl){
+			if($this->grant->view){
+				Context::set('view_grant', true);
+				$this->dispStickerView();
+			} else {
+				Context::set('view_grant', false);
+			}
+		}
+
+		if($this->grant->list){
+
+			$columnList = array('title', 'content', 'nick_name', 'tag', 'status');
+
+			$args = new stdClass();
+			$args->page = Context::get('page');
+			$list_count = (int)($this->module_config->list_count ?? 12);
+			$args->list_count = min(100, max(1, $list_count)); ///< 한페이지에 보여줄 기록 수
+			$args->page_count = 10; ///< 페이지 네비게이션에 나타날 페이지의 수
+			$args->sort_index = $sort === 'popular' ? 'sticker.bought_count' : 'sticker.regdate';
+			$args->order_type = 'desc';
+			if($search_target && in_array($search_target, $columnList, true)) {
+				if($search_target == 'status'){
+					$args->status = $search_keyword != 'CHECK' ? 'PUBLIC' : 'CHECK';
+				} else {
+					$args->{"s_".$search_target} = $search_keyword ?: null;
+				}
+			}
+
+			$output = executeQueryArray('sticker.getStickerList', $args);
+			$this->redactIpAddresses($output->data);
+
+			Context::addJsFilter($this->module_path.'tpl/filter', 'search.xml');
+			Context::set('list', $output->data);
+			Context::set('page_navigation', $output->page_navigation);
+
+		}
+
+		$subtitle = trim((string)($this->module_config->browser_subtitle ?? ''));
+		Context::set('grant', $this->grant);
+		Context::set('sort', $sort);
+		Context::set('search_target', $search_target);
+		Context::set('search_keyword', $search_keyword);
+		Context::set('sticker_title', $this->module_info->browser_title ?: Context::getLang('sticker'));
+		Context::set('sticker_subtitle', $subtitle !== '' ? $subtitle : Context::getLang('stkr_default_subtitle'));
+		$this->setTemplateFile('board');
+	}
+
+	public function dispStickerView(){
+		$sticker_srl = Context::get('sticker_srl');
+
+		$args = new stdClass();
+		$args->sticker_srl = $sticker_srl;
+		$output = executeQuery('sticker.getSticker', $args);
+		if(!$output->toBool() || empty($output->data)){
+			return false;
+		}
+
+		$args1 = new stdClass();
+		$args1->sticker_srl = $sticker_srl;
+		$output1 = executeQueryArray('sticker.getStickerImage', $args1);
+
+		$oStickerModel = StickerModel::getInstance();
+		$is_bougth = false;
+		$is_blocked = false;
+
+		$logged_info = Context::get('logged_info');
+		if($logged_info){
+			$is_bougth = $oStickerModel->checkBuySticker($logged_info->member_srl, $sticker_srl);
+			$is_blocked = $this->_isBlockedSticker($logged_info->member_srl, $sticker_srl);
+		}
+
+		$title = !empty($output->data->title) ? $output->data->title : "Untitled";
+		Context::addBrowserTitle($output->data->title);
+
+		$this->updateReadedCount($output->data);
+		$this->redactIpAddresses($output->data);
+
+		Context::set('date', date('YmdHis'));
+		Context::set('grant', $this->grant);
+		Context::set('is_bougth', $is_bougth);
+		Context::set('is_blocked', $is_blocked);
+		Context::set('sticker', $output->data);
+		Context::set('sticker_file', $output1->data);
+	}
+
+	public function dispStickerWrite(){
+
+		if( !(extension_loaded('gd') && function_exists('gd_info')) ){
+			return new BaseObject(-1,'GD_library_is_not_installed');
+		}
+
+		$logged_info =  Context::get('logged_info');
+		if(!$logged_info){
+			return new BaseObject(-1,'invalid_access');
+		}
+
+		if(!$this->grant->upload){
+			return new BaseObject(-1,'msg_access_denied');
+		}
+
+		$sticker_srl = Context::get('sticker_srl');
+		$sticker = false;
+		$sticker_file = array();
+
+		if($sticker_srl){
+			$args = new stdClass();
+			$args->sticker_srl = $sticker_srl;
+			$output = executeQuery('sticker.getSticker', $args);
+			if (!$output->toBool())	{
+				return $output;
+			}
+
+			if(!($logged_info->member_srl == $output->data->member_srl || $logged_info->is_admin == 'Y' || $this->grant->manager)){
+				return new BaseObject(-1,'invalid_access');
+			}
+
+			if(!($logged_info->is_admin == 'Y' || $this->grant->manager)){
+				$sticker_status = $output->data->status;
+				if($sticker_status == "PUBLIC"){
+					if($this->module_config->public_modify != "Y"){
+						return new BaseObject(-1, 'msg_modify_denied');
+					}
+				} else if($sticker_status == "CHECK"){
+					if($this->module_config->check_modify != "Y"){
+						return new BaseObject(-1, 'msg_modify_denied');
+					}
+				} else if($sticker_status == "PAUSE"){
+					if($this->module_config->pause_modify != "Y"){
+						return new BaseObject(-1, 'msg_modify_denied');
+					}
+				} else if($sticker_status == "STOP"){
+					return new BaseObject(-1, 'msg_modify_denied');
+				} else {
+					return new BaseObject(-1, 'invalid_status_sticker');
+				}
+
+				if($this->module_config->limit_modify_buy && $output->data->bought_count >= $this->module_config->limit_modify_buy){
+					return new BaseObject(-1, sprintf('판매 수가 %d이상인 스티커는 수정할 수 없습니다.', $this->module_config->limit_modify_buy));
+				}
+			}
+
+			$output1 = executeQueryArray('sticker.getStickerImage', $args);
+			$sticker_file = !empty($output1->data) ? $output1->data : array();
+
+			$output->data->content = htmlspecialchars($output->data->content, ENT_COMPAT | ENT_HTML401, 'UTF-8', false);
+			$this->redactIpAddresses($output->data);
+			$sticker = $output->data;
+		}
+		Context::set('sticker', $sticker);
+		Context::set('sticker_file', $sticker_file);
+
+		$oEditorModel = EditorModel::getInstance();
+		$option = new stdClass();
+		$option->primary_key_name = 'sticker_srl';
+		$option->content_key_name = 'content';
+		$option->allow_fileupload = FALSE;
+		$option->enable_autosave = FALSE;
+		$option->enable_default_component = TRUE;
+		$option->enable_component = FALSE;
+		$option->resizable = FALSE;
+		$option->disable_html = TRUE;
+		$option->skin = 'ckeditor';
+		$option->height = 200;
+		$editor = $oEditorModel->getEditor($logged_info->member_srl, $option);
+
+		$oStickerModel = StickerModel::getInstance();
+		$sticker_config = $oStickerModel->getConfig();
+
+		Context::set('editor', $editor);
+		Context::set('config', $sticker_config);
+
+		$this->setTemplateFile('editor');
+	}
+
+
+	public function dispStickerDelete(){
+		$logged_info = Context::get('logged_info');
+		if(!$logged_info){
+			return new BaseObject(-1,'invalid_access');
+		}
+		$member_srl = $logged_info->member_srl;
+		$sticker_srl = Context::get('sticker_srl');
+		if(!($sticker_srl)){
+			return new BaseObject(-1,'invalid_access');
+		}
+
+		$args = new stdClass();
+		$args->sticker_srl = $sticker_srl;
+		$output = executeQuery('sticker.getSticker', $args);
+		if (!$output->toBool())	{
+			return $output;
+		}
+		if(empty($output->data) || !($output->data->member_srl == $member_srl || $logged_info->is_admin == 'Y' || $this->grant->manager)){
+			return new BaseObject(-1,'invalid_access');
+		}
+
+		if(!($logged_info->is_admin == 'Y' || $this->grant->manager)){
+			$sticker_status = $output->data->status;
+			if($sticker_status == "PUBLIC"){
+				if($this->module_config->public_delete != "Y"){
+					return new BaseObject(-1, 'msg_delete_denied');
+				}
+			} else if($sticker_status == "CHECK"){
+				if($this->module_config->check_delete != "Y"){
+					return new BaseObject(-1, 'msg_delete_denied');
+				}
+			} else if($sticker_status == "PAUSE"){
+				if($this->module_config->pause_delete != "Y"){
+					return new BaseObject(-1, 'msg_delete_denied');
+				}
+			} else if($sticker_status == "STOP"){
+				return new BaseObject(-1, 'msg_delete_denied');
+			} else {
+				return new BaseObject(-1, 'invalid_status_sticker');
+			}
+
+			if($this->module_config->limit_delete_buy && $output->data->bought_count >= $this->module_config->limit_delete_buy){
+				return new BaseObject(-1, sprintf('판매 수가 %d이상인 스티커는 삭제할 수 없습니다.', $this->module_config->limit_delete_buy));
+			}
+		}
+
+		Context::addJsFilter($this->module_path.'tpl/filter', 'delete_sticker.xml');
+		$this->redactIpAddresses($output->data);
+		Context::set('sticker', $output->data);
+		$this->setTemplateFile('delete');
+
+	}
+
+
+	public function dispStickerMylist(){
+
+		$logged_info =  Context::get('logged_info');
+		if(!$logged_info){
+			return new BaseObject(-1,'invalid_access');
+		}
+		$args = new stdClass();
+		$args->page = Context::get('page');
+		$args->list_count = 10;
+		$args->page_count = 10;
+		$args->order_type = 'asc';
+		$args->member_srl = $logged_info->member_srl;
+		$args->date = date("YmdHis");
+		$output = executeQueryArray('sticker.getStickerMylist', $args);
+		$this->redactIpAddresses($output->data);
+
+		Context::set('sticker', $output->data);
+		Context::set('page_navigation', $output->page_navigation);
+
+		$this->setTemplateFile('member_sticker');
+
+	}
+
+	public function dispStickerMyBlock(){
+		$logged_info = Context::get('logged_info');
+		if(!$logged_info){
+			return new BaseObject(-1,'invalid_access');
+		}
+
+		$args = new stdClass();
+		$args->page = Context::get('page');
+		$args->list_count = 10;
+		$args->page_count = 10;
+		$args->order_type = 'desc';
+		$args->member_srl = $logged_info->member_srl;
+		$output = executeQueryArray('sticker.getStickerBlockList', $args);
+
+		Context::set('sticker', $output->data);
+		Context::set('page_navigation', $output->page_navigation);
+
+		$this->setTemplateFile('member_block');
+	}
+
+
+}
+

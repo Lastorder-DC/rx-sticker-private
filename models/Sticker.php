@@ -1,25 +1,34 @@
 <?php
 /*! Copyright (C) 2016 BGM STORAGE. All rights reserved. */
+
+namespace Rhymix\Modules\Sticker\Models;
+
+use BaseObject;
+use Context;
+use Mobile;
+use ModuleModel;
 use Rhymix\Framework\Cache;
 use Rhymix\Modules\Sticker\Services\ImageProcessor;
+use stdClass;
+
 /**
- * @class  stickerModel
+ * Retrieve sticker data and configuration.
+ *
  * @author Huhani (mmia268@gmail.com)
- * @brief  Sticker module model class.
  */
 
-class stickerModel extends sticker
+class Sticker extends \ModuleObject
 {
-	function init()
+	public function init()
 	{
 	}
 
-	function getConfig()
+	public function getConfig()
 	{
 		static $config = null;
 		if(is_null($config))
 		{
-			$oModuleModel = moduleModel::getInstance();
+			$oModuleModel = ModuleModel::getInstance();
 			$config = $oModuleModel->getModuleConfig('sticker');
 			if(!$config)
 			{
@@ -48,7 +57,7 @@ class stickerModel extends sticker
 		return $config;
 	}
 
-	function getCommentStickerList(){
+	public function getCommentStickerList(){
 
 		$logged_info =  Context::get('logged_info');
 		$sticker_array = $this->getDefaultSticker();
@@ -191,7 +200,7 @@ class stickerModel extends sticker
 		$this->add('sticker', $sticker_array);
 	}
 
-	function getStickerElemList(){
+	public function getStickerElemList(){
 		$sticker_srl = Context::get('sticker_srl');
 		$logged_info = Context::get('logged_info');
 		$member_srl = $logged_info ? $logged_info->member_srl : 0;
@@ -370,7 +379,7 @@ class stickerModel extends sticker
 		return $this->checkDefaultSticker($sticker_srl) || ($member_srl && $this->checkBuySticker($member_srl, $sticker_srl));
 	}
 
-	function getCommentSticekrCountByDocumentSrl($document_srl = 0, $member_srl = 0){
+	public function getCommentSticekrCountByDocumentSrl($document_srl = 0, $member_srl = 0){
 		$args = new stdClass();
 		$args->document_srl = $document_srl;
 		$args->member_srl = $member_srl;
@@ -401,7 +410,7 @@ class stickerModel extends sticker
 		return $count;
 	}
 
-	function getSticker($sticker_srl){
+	public function getSticker($sticker_srl){
 		$sticker_srl = intval($sticker_srl);
 		if($sticker_srl < 1){
 			return false;
@@ -423,7 +432,7 @@ class stickerModel extends sticker
 		return $sticker;
 	}
 
-	function clearStickerCache($sticker_srl){
+	public function clearStickerCache($sticker_srl){
 		$sticker_srl = intval($sticker_srl);
 		if($sticker_srl < 1){
 			return;
@@ -433,7 +442,7 @@ class stickerModel extends sticker
 		Cache::set($cache_key, null);
 	}
 
-	function getDefaultSticker(){
+	public function getDefaultSticker(){
 		$config = $this->getConfig();
 		$defaultSticker = isset($config->default_sticker) ? $config->default_sticker : '';
 		$sticker = explode(',', $defaultSticker);
@@ -455,7 +464,7 @@ class stickerModel extends sticker
 		return $stickerArray;
 	}
 
-	function checkDefaultSticker($sticker_srl){
+	public function checkDefaultSticker($sticker_srl){
 		$config = $this->getConfig();
 		$defaultSticker = isset($config->default_sticker) ? $config->default_sticker : '';
 		$sticker = explode(',', $defaultSticker);
@@ -470,7 +479,7 @@ class stickerModel extends sticker
 		return false;
 	}
 
-	function checkBuySticker($member_srl = 0, $sticker_srl = 0){
+	public function checkBuySticker($member_srl = 0, $sticker_srl = 0){
 		$args = new stdClass();
 		$args->member_srl = $member_srl;
 		$args->sticker_srl = $sticker_srl;
@@ -481,5 +490,3 @@ class stickerModel extends sticker
 
 }
 
-/* End of file sticker.model.php */
-/* Location: ./modules/sticker/sticker.model.php */

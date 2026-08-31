@@ -3,14 +3,14 @@
 namespace Rhymix\Modules\Sticker\Controllers;
 
 use Context;
-use stickerModel;
+use Rhymix\Modules\Sticker\Models\Sticker as StickerModel;
 
 /**
  * Handle events that are not tied to a public module action.
  *
  * The notification integration is adapted from Waterticket/rx-module-sticker.
  */
-class EventHandlers extends Base
+class EventHandlers extends Sticker
 {
 	/**
 	 * Replace sticker tokens with a readable summary before ncenterlite stores a notification.
@@ -25,7 +25,7 @@ class EventHandlers extends Base
 			return;
 		}
 
-		$config = stickerModel::getInstance()->getConfig();
+		$config = StickerModel::getInstance()->getConfig();
 		if(($config->use ?? 'N') !== 'Y' || ($config->notify_message_type ?? 'text') === 'none')
 		{
 			return;

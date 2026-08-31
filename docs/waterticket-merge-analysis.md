@@ -100,8 +100,8 @@ Waterticket의 [`b5b6b40`](https://github.com/Waterticket/rx-module-sticker/comm
 
 현재 저장소에서 별도로 확인된 우선 수정 대상은 다음과 같다.
 
-- `sticker.model.php`의 `page > 1`은 `$page > 1`로 수정해야 한다. PHP 8에서 정의되지 않은 상수 접근은 오류가 될 수 있다.
-- `sticker.admin.controller.php`의 `procStickerAdminDesign()`은 정의되지 않은 `$config`를 `updateModuleConfig()`에 전달한다. 해당 호출은 제거하거나 실제 설정 객체를 구성해야 한다.
+- `models/Sticker.php`의 `page > 1`은 `$page > 1`로 수정해야 한다. PHP 8에서 정의되지 않은 상수 접근은 오류가 될 수 있다.
+- `controllers/Admin.php`의 `procStickerAdminDesign()`은 정의되지 않은 `$config`를 `updateModuleConfig()`에 전달한다. 해당 호출은 제거하거나 실제 설정 객체를 구성해야 한다.
 
 #### 라우팅
 

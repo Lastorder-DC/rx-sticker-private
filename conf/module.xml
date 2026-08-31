@@ -22,71 +22,75 @@
 			<title xml:lang="en">Purchase for free</title>
 		</grant>
 	</grants>
+	<classes>
+		<class type="default" name="Controllers\Base" />
+		<class type="install" name="Controllers\Install" />
+	</classes>
 	<actions>
-		<action name="getCommentStickerList" type="model" permission="guest" />
-		<action name="getStickerPickerList" type="model" permission="guest" />
-		<action name="getStickerElemList" type="model" permission="guest" />
-		<action name="resolveStickers" type="model" permission="guest" />
+		<action name="getCommentStickerList" class="Models\Sticker" permission="guest" />
+		<action name="getStickerPickerList" class="Models\Sticker" permission="guest" />
+		<action name="getStickerElemList" class="Models\Sticker" permission="guest" />
+		<action name="resolveStickers" class="Models\Sticker" permission="guest" />
 
-		<action name="dispStickerList" type="view" permission="list" index="true">
+		<action name="dispStickerList" class="Controllers\Display" permission="list" index="true">
 			<route route="$sticker_srl:int" priority="100" />
 			<route route="page/$page:int" priority="10" />
 		</action>
-		<action name="dispStickerWrite" type="view" permission="upload" meta-noindex="true">
+		<action name="dispStickerWrite" class="Controllers\Display" permission="upload" meta-noindex="true">
 			<route route="write" />
 			<route route="$sticker_srl:int/edit" />
 		</action>
-		<action name="dispStickerDelete" type="view" permission="member" route="$sticker_srl:int/delete" meta-noindex="true" />
-		<action name="dispStickerMylist" type="view" permission="member" route="mylist" meta-noindex="true" />
-		<action name="dispStickerMyBlock" type="view" permission="member" route="myblock" meta-noindex="true" />
+		<action name="dispStickerDelete" class="Controllers\Display" permission="member" route="$sticker_srl:int/delete" meta-noindex="true" />
+		<action name="dispStickerMylist" class="Controllers\Display" permission="member" route="mylist" meta-noindex="true" />
+		<action name="dispStickerMyBlock" class="Controllers\Display" permission="member" route="myblock" meta-noindex="true" />
 
-		<action name="procStickerInsert" type="controller" permission="upload" />
-		<action name="procStickerCommentInsert" type="controller" permission="member" />
-		<action name="procStickerDelete" type="controller" permission="member" />
-		<action name="procStickerFileDelete" type="controller" permission="member" />
-		<action name="procStickerBuy" type="controller" permission="buy" />
-		<action name="procStickerBuyDelete" type="controller" permission="member" />
-		<action name="procStickerBuyOrderChange" type="controller" permission="member" />
-		<action name="procStickerGetStickerSrl" type="controller" permission="guest" />
-		<action name="procStickerBlockInsert" type="controller" permission="member" />
-		<action name="procStickerBlockDelete" type="controller" permission="member" />
-		<action name="procStickerPublish" type="controller" permission="manager" ruleset="publishSticker" />
+		<action name="procStickerInsert" class="Controllers\Sticker" permission="upload" />
+		<action name="procStickerCommentInsert" class="Controllers\Sticker" permission="member" />
+		<action name="procStickerDelete" class="Controllers\Sticker" permission="member" />
+		<action name="procStickerFileDelete" class="Controllers\Sticker" permission="member" />
+		<action name="procStickerBuy" class="Controllers\Sticker" permission="buy" />
+		<action name="procStickerBuyDelete" class="Controllers\Sticker" permission="member" />
+		<action name="procStickerBuyOrderChange" class="Controllers\Sticker" permission="member" />
+		<action name="procStickerGetStickerSrl" class="Controllers\Sticker" permission="guest" />
+		<action name="procStickerBlockInsert" class="Controllers\Sticker" permission="member" />
+		<action name="procStickerBlockDelete" class="Controllers\Sticker" permission="member" />
+		<action name="procStickerPublish" class="Controllers\Sticker" permission="manager" />
 
-		<action name="dispStickerAdminStickerList" type="view" permission="root" admin_index="true" />
-		<action name="dispStickerAdminStickerView" type="view" permission="root" />
-		<action name="dispStickerAdminBuyList" type="view" permission="root" />
-		<action name="dispStickerAdminBuyInfo" type="view" permission="root" />
-		<action name="dispStickerAdminConfig" type="view" permission="root" />
-		<action name="dispStickerAdminCategoryInfo" type="view" permission="root" />
-		<action name="dispStickerAdminGrantInfo" type="view" permission="root" />
-		<action name="dispStickerAdminLogList" type="view" permission="root" />
-		<action name="dispStickerAdminLogInfo" type="view" permission="root" />
-		<action name="dispStickerAdminGifConversionLog" type="view" permission="root" />
-		<action name="dispStickerAdminDesign" type="view" permission="root" />
-		<action name="dispStickerAdminSkinInfo" type="view" permission="root" />
-		<action name="dispStickerAdminMobileSkinInfo" type="view" permission="root" />
+		<action name="dispStickerAdminStickerList" class="Controllers\AdminDisplay" permission="root" admin_index="true" />
+		<action name="dispStickerAdminStickerView" class="Controllers\AdminDisplay" permission="root" />
+		<action name="dispStickerAdminBuyList" class="Controllers\AdminDisplay" permission="root" />
+		<action name="dispStickerAdminBuyInfo" class="Controllers\AdminDisplay" permission="root" />
+		<action name="dispStickerAdminConfig" class="Controllers\AdminDisplay" permission="root" />
+		<action name="dispStickerAdminCategoryInfo" class="Controllers\AdminDisplay" permission="root" />
+		<action name="dispStickerAdminGrantInfo" class="Controllers\AdminDisplay" permission="root" />
+		<action name="dispStickerAdminLogList" class="Controllers\AdminDisplay" permission="root" />
+		<action name="dispStickerAdminLogInfo" class="Controllers\AdminDisplay" permission="root" />
+		<action name="dispStickerAdminGifConversionLog" class="Controllers\AdminDisplay" permission="root" />
+		<action name="dispStickerAdminDesign" class="Controllers\AdminDisplay" permission="root" />
+		<action name="dispStickerAdminSkinInfo" class="Controllers\AdminDisplay" permission="root" />
+		<action name="dispStickerAdminMobileSkinInfo" class="Controllers\AdminDisplay" permission="root" />
 
-		<action name="procStickerAdminConfig" type="controller" permission="root" />
-		<action name="procStickerAdminMigrateGifToMp4" type="controller" permission="root" />
-		<action name="procStickerAdminRetryGifConversion" type="controller" permission="root" />
-		<action name="procStickerAdminDesign" type="controller" permission="root" />
-		<action name="procStickerAdminUpdate" type="controller" permission="root" />
-		<action name="procStickerAdminDelete" type="controller" permission="root" />
-		<action name="procStickerAdminBuyUpdate" type="controller" permission="root" />
-		<action name="procStickerAdminBuyDelete" type="controller" permission="root" />
-		<action name="procStickerAdminLogClear" type="controller" permission="root" />
+		<action name="procStickerAdminConfig" class="Controllers\Admin" permission="root" />
+		<action name="procStickerAdminMigrateGifToMp4" class="Controllers\Admin" permission="root" />
+		<action name="procStickerAdminRetryGifConversion" class="Controllers\Admin" permission="root" />
+		<action name="procStickerAdminDesign" class="Controllers\Admin" permission="root" />
+		<action name="procStickerAdminUpdate" class="Controllers\Admin" permission="root" />
+		<action name="procStickerAdminDelete" class="Controllers\Admin" permission="root" />
+		<action name="procStickerAdminBuyUpdate" class="Controllers\Admin" permission="root" />
+		<action name="procStickerAdminBuyDelete" class="Controllers\Admin" permission="root" />
+		<action name="procStickerAdminLogClear" class="Controllers\Admin" permission="root" />
 	</actions>
 	<eventHandlers>
-		<eventHandler after="member.deleteMember" class="controller" method="triggerDeleteMember" />
-		<eventHandler after="member.getMemberMenu" class="controller" method="triggerMemberMenu" />
-		<eventHandler before="document.insertDocument" class="controller" method="triggerBeforeInsertDocument" />
-		<eventHandler after="document.insertDocument" class="controller" method="triggerAfterInsertDocument" />
-		<eventHandler before="document.updateDocument" class="controller" method="triggerBeforeUpdateDocument" />
-		<eventHandler after="document.updateDocument" class="controller" method="triggerAfterUpdateDocument" />
-		<eventHandler before="comment.insertComment" class="controller" method="triggerBeforeInsertComment" />
-		<eventHandler before="comment.updateComment" class="controller" method="triggerBeforeUpdateComment" />
-		<eventHandler before="moduleHandler.init" class="controller" method="triggerBeforeModuleInit" />
-		<eventHandler before="display" class="controller" method="triggerBeforeDisplay" />
+		<eventHandler after="member.deleteMember" class="Controllers\EventHandlers" method="triggerDeleteMember" />
+		<eventHandler after="member.getMemberMenu" class="Controllers\EventHandlers" method="triggerMemberMenu" />
+		<eventHandler before="document.insertDocument" class="Controllers\EventHandlers" method="triggerBeforeInsertDocument" />
+		<eventHandler after="document.insertDocument" class="Controllers\EventHandlers" method="triggerAfterInsertDocument" />
+		<eventHandler before="document.updateDocument" class="Controllers\EventHandlers" method="triggerBeforeUpdateDocument" />
+		<eventHandler after="document.updateDocument" class="Controllers\EventHandlers" method="triggerAfterUpdateDocument" />
+		<eventHandler before="comment.insertComment" class="Controllers\EventHandlers" method="triggerBeforeInsertComment" />
+		<eventHandler before="comment.updateComment" class="Controllers\EventHandlers" method="triggerBeforeUpdateComment" />
+		<eventHandler before="moduleHandler.init" class="Controllers\EventHandlers" method="triggerBeforeModuleInit" />
+		<eventHandler before="display" class="Controllers\EventHandlers" method="triggerBeforeDisplay" />
 		<eventHandler before="ncenterlite._insertNotify" class="Controllers\EventHandlers" method="beforeInsertNotify" />
 	</eventHandlers>
 	<menus>

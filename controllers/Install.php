@@ -1,17 +1,25 @@
 <?php
 /*! Copyright (C) 2016 BGM STORAGE. All rights reserved. */
+
+namespace Rhymix\Modules\Sticker\Controllers;
+
+use BaseObject;
+use ModuleController;
+use ModuleModel;
+use stdClass;
+
 /**
- * @class  sticker
+ * Install, update, and uninstall the sticker module.
+ *
  * @author Huhani (mmia268@gmail.com)
- * @brief  Sticker module high class.
  */
 
-class sticker extends ModuleObject
+class Install extends \ModuleObject
 {
-	function moduleInstall()
+	public function moduleInstall()
 	{
-		$oModuleModel = moduleModel::getInstance();
-		$oModuleController = moduleController::getInstance();
+		$oModuleModel = ModuleModel::getInstance();
+		$oModuleController = ModuleController::getInstance();
 
 		$sticker_info = $oModuleModel->getModuleInfoByMid('sticker');
 		if(!$sticker_info || !$sticker_info->module_srl) {
@@ -87,10 +95,10 @@ class sticker extends ModuleObject
 
 
 
-	function moduleUninstall()
+	public function moduleUninstall()
 	{
-		$oModuleModel = moduleModel::getInstance();
-		$oModuleController = moduleController::getInstance();
+		$oModuleModel = ModuleModel::getInstance();
+		$oModuleController = ModuleController::getInstance();
 
 		//페이지 삭제
 		$sticker_info = $oModuleModel->getModuleInfoByMid('sticker');
@@ -108,9 +116,9 @@ class sticker extends ModuleObject
 
 
 
-	function checkUpdate()
+	public function checkUpdate()
 	{
-		$oModuleModel = moduleModel::getInstance();
+		$oModuleModel = ModuleModel::getInstance();
 		$config = $oModuleModel->getModuleConfig('sticker');
 		$required_keys = array('browser_subtitle', 'quick_tags', 'notify_message_type', 'gif2mp4', 'skin_migrated', 'list_count', 'doc_max_sticker_count');
 		foreach($required_keys as $key){
@@ -126,10 +134,10 @@ class sticker extends ModuleObject
 		return false;
 	}
 
-	function moduleUpdate()
+	public function moduleUpdate()
 	{
-		$oModuleModel = moduleModel::getInstance();
-		$oModuleController = moduleController::getInstance();
+		$oModuleModel = ModuleModel::getInstance();
+		$oModuleController = ModuleController::getInstance();
 		$config = $oModuleModel->getModuleConfig('sticker');
 		$config = $config ?: new stdClass();
 		$migrate_skin = !isset($config->skin_migrated);
@@ -167,6 +175,3 @@ class sticker extends ModuleObject
 	}
 
 }
-
-/* End of file sticker.class.php */
-/* Location: ./modules/sticker/sticker.class.php */
